@@ -1,0 +1,22 @@
+Primero creé el repositorio despertApp2 en github. Deslogié despertApp y me vincule a despertApp 2 para seguridad.
+Ejecute: 
+npm install (Por las dudas)
+npx expo prebuild
+Esto va a generar las carpetas:
+/android
+/ios
+Y actualizar tu proyecto al formato Expo Bare Workflow
+
+1️⃣ Instalar react-native-push-notification
+ npm install react-native-push-notification
+
+2️⃣ Instalar react-native-background-fetch
+npm install react-native-background-fetch
+
+Me alerta de unas vulnerabilidades y se resolvieron con el comando npm audit fix
+
+
+------------------------------------- 
+
+ejecutar este comando para que luego se vincule con el simulador android
+npx expo start --dev-client

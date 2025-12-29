@@ -230,7 +230,7 @@ export const AlarmaProvider = ({ children }) => {
           alarma.minutos === minutosActuales
         ) {
           reproducirSonido(alarma.sonido.nombre);
-          // Podés eliminarla después si querés
+
           return;
         }
 
@@ -241,7 +241,7 @@ export const AlarmaProvider = ({ children }) => {
           alarma.hora === horaActual &&
           alarma.minutos === minutosActuales
         ) {
-          reproducirSonido(alarma.sonido.nombre);
+          reproducirSonido(alarma.sonido?.nombre ?? "Alarma Despetador");
         }
       });
 
