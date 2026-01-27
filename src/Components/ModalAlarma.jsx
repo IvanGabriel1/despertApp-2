@@ -9,12 +9,13 @@ import {
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { colors } from "../Global/colors";
 import { AlarmaContext } from "../Context/AlarmaContext";
-import SonidoAcordeon from "./SonidoAcordeon";
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
 
 const ModalAlarma = () => {
   const [hora, setHora] = useState("");
   const [minutos, setMinutos] = useState("");
-
+  const [mensaje, setMensaje] = useState("");
   const [lunes, setLunes] = useState(false);
   const [martes, setMartes] = useState(false);
   const [miercoles, setMiercoles] = useState(false);
@@ -25,10 +26,6 @@ const ModalAlarma = () => {
 
   const [botonSoloUnaVez, setBotonSoloUnaVez] = useState(true);
 
-  const [sonidoElegido, setSonidoElegido] = useState(null);
-
-  const [resetKeySonido, setResetKeySonido] = useState(0);
-
   const minutosRef = useRef(null);
 
   useEffect(() => {
@@ -38,33 +35,6 @@ const ModalAlarma = () => {
   useEffect(() => {
     console.log("Alarmas programadas:", alarmasProgramadas);
   }, [alarmasProgramadas]);
-
-  const sonidos = [
-    {
-      nombre: "Alarma Despetador",
-      archivo: require("../../assets/sonidos/Alarma0.mp3"),
-    },
-    {
-      nombre: "Morning Birds",
-      archivo: require("../../assets/sonidos/morning-birds.mp3"),
-    },
-    {
-      nombre: "Morning Birds 2",
-      archivo: require("../../assets/sonidos/morning-birds2.mp3"),
-    },
-    {
-      nombre: "Homero Renuncio",
-      archivo: require("../../assets/sonidos/homero-renuncio.mp3"),
-    },
-    {
-      nombre: "Oceano",
-      archivo: require("../../assets/sonidos/ocean.mp3"),
-    },
-    {
-      nombre: "Lobo",
-      archivo: require("../../assets/sonidos/wolf.mp3"),
-    },
-  ];
 
   const {
     isOpenModal,
@@ -94,7 +64,7 @@ const ModalAlarma = () => {
 
     if (!botonSoloUnaVez && diasArray.length === 0) {
       alert(
-        "Debes elegir por lo menos 1 dia, o seleccionar la opcion `Solo una vez` "
+        "Debes elegir por lo menos 1 dia, o seleccionar la opcion `Solo una vez` ",
       );
       return;
     }
@@ -107,33 +77,41 @@ const ModalAlarma = () => {
       return;
     }
 
+    if (mensaje.length > 50) {
+      alert("El mensaje tiene que tener menos de 50 caracterés");
+      return;
+    }
+
+    if (
+      mensaje === "" ||
+      mensaje === " " ||
+      mensaje === null ||
+      mensaje === undefined
+    ) {
+      setMensaje("Sin mensaje");
+    }
+
     const nuevaAlarma = {
-      ...creandoAlarma,
       id: `alarma-${Date.now()}`,
-      notificationId: "UUID-de-Expo",
-      dias: diasArray,
       hora: h,
       minutos: m,
+      dias: diasArray,
       unavez: botonSoloUnaVez,
+      mensaje,
     };
 
-    setCreandoAlarma(nuevaAlarma);
-
-    console.log(creandoAlarma);
-    console.log(nuevaAlarma);
+    setIsOpenModal(!isOpenModal);
+    console.log("nuevaAlarma:", nuevaAlarma);
     await agregarAlarma(nuevaAlarma);
 
-    alert(`Alarma programada a las ${h}:${m}`);
-
     resetInputs();
+    alert(`Mensaje programado a las ${h}:${m} : ${mensaje}`);
   };
 
   const resetInputs = () => {
     setHora("");
     setMinutos("");
     setBotonSoloUnaVez(true);
-    setSonidoElegido(null);
-    cerrarModal();
     setLunes(false);
     setMartes(false);
     setMiercoles(false);
@@ -141,8 +119,7 @@ const ModalAlarma = () => {
     setViernes(false);
     setSabado(false);
     setDomingo(false);
-    setResetKeySonido((prev) => prev + 1);
-    setCreandoAlarma((prev) => ({ ...prev, sonido: null }));
+    setMensaje("");
   };
 
   const handleBotonUnaVez = () => {
@@ -280,20 +257,15 @@ const ModalAlarma = () => {
             </View>
           )}
 
-          <Text style={styles.modalTitle2}>Audio de la alarma:</Text>
-
-          {/*Para la funcion de grabar tu propio audio no tendria que usar expo sino: Eject a React Native CLI (expo eject) */}
-          {/* <Pressable style={styles.botonGrabarAudio}>
-          <Text style={styles.botonGrabarAudioText}>Grabar Audio</Text>
-        </Pressable> */}
-
-          {/* npx expo install expo-audio => sirve para reproducir audio en aplicaciones Expo.*/}
-          <SonidoAcordeon
-            key={resetKeySonido}
-            sonidos={sonidos}
-            onSeleccionar={(sonido) => setSonidoElegido(sonido)}
-            sonidoInicial={sonidoElegido}
-          />
+          <Text style={styles.modalTitle2}>Mensaje:</Text>
+          <View style={styles.textInputMensajeContainer}>
+            <TextInput
+              style={styles.mensajeTextInput}
+              placeholder="Escribe un mensaje"
+              value={mensaje}
+              onChangeText={setMensaje}
+            />
+          </View>
 
           <Pressable onPress={handleOpenModal} style={styles.botonCerrarModal}>
             <Text style={styles.textBotonModal}>X</Text>
@@ -427,5 +399,14 @@ const styles = StyleSheet.create({
     color: colors.blanco,
     fontSize: 20,
     fontWeight: 800,
+  },
+  textInputMensajeContainer: {
+    borderColor: colors.primario,
+    borderWidth: 1,
+    borderRadius: 16,
+    width: "80%",
+    margin: 16,
+    height: 80,
+    alignItems: "center",
   },
 });

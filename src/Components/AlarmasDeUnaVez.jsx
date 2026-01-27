@@ -11,51 +11,23 @@ import React, { useContext, useRef, useState } from "react";
 import { colors } from "../Global/colors";
 import { AlarmaContext } from "../Context/AlarmaContext";
 import { SafeAreaView } from "react-native-safe-area-context";
-import SonidoAcordeon from "./SonidoAcordeon";
-import * as Notifications from "expo-notifications";
 
 const AlarmasDeUnaVez = () => {
   const [isOpenModalUnaVez, setIsOpenModalUnaVez] = useState(false);
   const [alarmaSeleccionada, setAlarmaSeleccionada] = useState(null);
   const [nuevaHora, setNuevaHora] = useState(null);
   const [nuevaMinutos, setNuevaMinutos] = useState(null);
-  const [sonidoElegido, setSonidoElegido] = useState(null);
+  const [nuevaMensaje, setNuevaMensaje] = useState(null);
 
   const {
     alarmasProgramadas,
     borrarItemAlarma,
     setAlarmasProgramadas,
+    cerrarModal,
     programarNotificacion,
     cancelarNotificacion,
   } = useContext(AlarmaContext);
   const minutosRef = useRef(null);
-
-  const sonidos = [
-    {
-      nombre: "Alarma Despetador",
-      archivo: require("../../assets/sonidos/Alarma0.mp3"),
-    },
-    {
-      nombre: "Morning Birds",
-      archivo: require("../../assets/sonidos/morning-birds.mp3"),
-    },
-    {
-      nombre: "Morning Birds 2",
-      archivo: require("../../assets/sonidos/morning-birds2.mp3"),
-    },
-    {
-      nombre: "Homero Renuncio",
-      archivo: require("../../assets/sonidos/homero-renuncio.mp3"),
-    },
-    {
-      nombre: "Oceano",
-      archivo: require("../../assets/sonidos/ocean.mp3"),
-    },
-    {
-      nombre: "Lobo",
-      archivo: require("../../assets/sonidos/wolf.mp3"),
-    },
-  ];
 
   const alarmasProgramadasDeUnaVez = alarmasProgramadas
     .filter((item) => item.unavez === true)
@@ -74,7 +46,7 @@ const AlarmasDeUnaVez = () => {
       return (
         index ===
         self.findIndex(
-          (t) => t.hora === item.hora && t.minutos === item.minutos
+          (t) => t.hora === item.hora && t.minutos === item.minutos,
         )
       );
     });
@@ -89,7 +61,7 @@ const AlarmasDeUnaVez = () => {
     setNuevaHora(null);
     setNuevaMinutos(null);
     setAlarmaSeleccionada(null);
-    setSonidoElegido(null);
+    setNuevaMensaje(null);
   };
 
   const guardarCambios = async () => {
@@ -97,7 +69,7 @@ const AlarmasDeUnaVez = () => {
 
     if (nuevaHora === "" || nuevaMinutos === "") {
       alert(
-        "No se puede guardar una alarma vacía. Completá la hora y los minutos."
+        "No se puede guardar una alarma vacía. Completá la hora y los minutos.",
       );
       return;
     }
@@ -111,11 +83,9 @@ const AlarmasDeUnaVez = () => {
       nuevaMinutos && nuevaMinutos.trim() !== ""
         ? nuevaMinutos
         : alarmaSeleccionada.minutos;
-    let sonidoFinal =
-      sonidoElegido?.nombre ??
-      (typeof alarmaSeleccionada.sonido === "object"
-        ? alarmaSeleccionada.sonido.nombre
-        : alarmaSeleccionada.sonido);
+
+    let mensajeFinal =
+      nuevaMensaje !== null ? nuevaMensaje : alarmaSeleccionada.mensaje;
 
     // formatear a dos dígitos
     if (horaFinal?.length === 1) horaFinal = horaFinal.padStart(2, "0");
@@ -130,36 +100,24 @@ const AlarmasDeUnaVez = () => {
       ...alarmaSeleccionada,
       hora: horaFinal,
       minutos: minutosFinal,
-      sonido: sonidoFinal,
+      mensaje: mensajeFinal,
+      unavez: true,
     });
 
     setAlarmasProgramadas((prev) => {
-      const actualizadas = prev.map((item) =>
+      return prev.map((item) =>
         item.id === alarmaSeleccionada.id
           ? {
               ...item,
               hora: horaFinal,
               minutos: minutosFinal,
-              sonido: sonidoFinal,
               notificationId,
+              mensaje: mensajeFinal,
             }
-          : item
+          : item,
       );
-
-      const unicas = actualizadas.filter(
-        (item, index, self) =>
-          index ===
-          self.findIndex(
-            (t) =>
-              t.hora === item.hora &&
-              t.minutos === item.minutos &&
-              t.unavez === item.unavez
-          )
-      );
-
-      return unicas;
     });
-    alert(`Alarma actualizada a ${horaFinal}:${minutosFinal}`);
+
     btnCerrarModalUnaVez();
   };
 
@@ -169,7 +127,7 @@ const AlarmasDeUnaVez = () => {
       <View style={styles.listaAlarmasDeUnaVezContainer}>
         <FlatList
           data={alarmasProgramadasDeUnaVez}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.listaAlarmasDeUnaVezItem}>
               <View style={styles.alarmasDeUnaVezHyMItem}>
@@ -177,6 +135,12 @@ const AlarmasDeUnaVez = () => {
                 <Text style={styles.alarmasDeUnaVezPuntos}>:</Text>
                 <Text style={styles.alarmasDeUnaVezMinutos}>
                   {item.minutos}
+                </Text>
+              </View>
+
+              <View style={styles.alarmasDeUnaVezMensajeContainer}>
+                <Text style={styles.alarmasDeUnaVezMensajeTexto}>
+                  {item.mensaje}
                 </Text>
               </View>
 
@@ -285,10 +249,6 @@ const AlarmasDeUnaVez = () => {
                       return;
                     }
 
-                    if (text.length === 2) {
-                      minutosRef.current?.focus();
-                    }
-
                     setNuevaMinutos(cleanText);
                   }}
                   keyboardType="numeric"
@@ -298,12 +258,19 @@ const AlarmasDeUnaVez = () => {
               </View>
             )}
 
+            <Text>Texto del mensaje:</Text>
             {alarmaSeleccionada && (
-              <SonidoAcordeon
-                sonidos={sonidos}
-                onSeleccionar={(sonido) => setSonidoElegido(sonido)}
-                sonidoInicial={alarmaSeleccionada.sonido}
-              />
+              <View style={styles.textinputModalContainer}>
+                <TextInput
+                  style={styles.textinputModal}
+                  value={
+                    nuevaMensaje === null
+                      ? alarmaSeleccionada.mensaje
+                      : nuevaMensaje
+                  }
+                  onChangeText={setNuevaMensaje}
+                />
+              </View>
             )}
 
             <Pressable
@@ -393,6 +360,8 @@ const styles = StyleSheet.create({
   alarmasDeUnaVezBorrarText: {
     fontSize: 24,
   },
+  alarmasDeUnaVezMensajeContainer: {},
+  alarmasDeUnaVezMensajeTexto: {},
   // Styles Modal:
   modalUnaVezContainer: {
     marginTop: 86,

@@ -1,10 +1,19 @@
 import { StyleSheet } from "react-native";
 import React, { createContext, useEffect, useState } from "react";
-import { Audio } from "expo-av";
 import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
 export const AlarmaContext = createContext();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 export const AlarmaProvider = ({ children }) => {
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -14,75 +23,48 @@ export const AlarmaProvider = ({ children }) => {
     dias: [],
     hora: "",
     minutos: "",
-    sonido: "",
+    mensaje: "",
+    notificacion: "",
   });
   const [alarmasProgramadas, setAlarmasProgramadas] = useState([]);
 
-  const sonidosMap = [
-    {
-      nombre: "Alarma Despetador",
-      archivo: require("../../assets/sonidos/Alarma0.mp3"),
-    },
-    {
-      nombre: "Morning Birds",
-      archivo: require("../../assets/sonidos/morning-birds.mp3"),
-    },
-    {
-      nombre: "Morning Birds 2",
-      archivo: require("../../assets/sonidos/morning-birds2.mp3"),
-    },
-    {
-      nombre: "Homero Renuncio",
-      archivo: require("../../assets/sonidos/homero-renuncio.mp3"),
-    },
-    {
-      nombre: "Oceano",
-      archivo: require("../../assets/sonidos/ocean.mp3"),
-    },
-    {
-      nombre: "Lobo",
-      archivo: require("../../assets/sonidos/wolf.mp3"),
-    },
+  const diaSemana = [
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miercoles",
+    "Jueves",
+    "Viernes",
+    "Sabado",
   ];
+  const hoy = diaSemana[new Date().getDay()];
 
-  // instalar expo-av
-  const reproducirSonido = async (nombre) => {
-    try {
-      let sonido =
-        sonidosMap.find((s) => s.nombre === nombre) ||
-        sonidosMap.find((s) => s.nombre === "Alarma Despetador");
-
-      if (!sonido || !sonido.archivo) {
-        console.log("Sonido no válido:", nombre);
-        return;
-      }
-
-      console.log("Sonido encontrado:", sonido);
-
-      const { sound } = await Audio.Sound.createAsync(sonido.archivo);
-      await sound.playAsync();
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.didJustFinish) sound.unloadAsync();
-      });
-    } catch (error) {
-      console.log("Error reproduciendo sonido: ", error);
-    }
+  const diasANumero = {
+    Domingo: 0,
+    Lunes: 1,
+    Martes: 2,
+    Miercoles: 3,
+    Jueves: 4,
+    Viernes: 5,
+    Sabado: 6,
   };
+
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      Notifications.setNotificationChannelAsync("alarmas", {
+        name: "Alarmas",
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: "default",
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FF231F7C",
+      });
+    }
+  }, []);
 
   const obtenerProximasAlarmas = (alarmasProgramadas) => {
     if (!alarmasProgramadas || alarmasProgramadas.length === 0) return [];
 
     const ahora = new Date();
-
-    const diaSemana = [
-      "Domingo",
-      "Lunes",
-      "Martes",
-      "Miercoles",
-      "Jueves",
-      "Viernes",
-      "Sabado",
-    ];
 
     const alarmasConFecha = alarmasProgramadas.map((alarma) => {
       const hora = parseInt(alarma.hora);
@@ -134,39 +116,58 @@ export const AlarmaProvider = ({ children }) => {
     return futuras.slice(0, 2);
   };
 
-  /* 
-  Arr err sonido al editar alarma + Mod style modalAlarma + se agrega icon + README.md + Alerta por la limitacion de no funcionar en segundo plano.
-  */
+  //Limpieza de notificaciones de una vez que ya pasaron
+  useEffect(() => {
+    const ahora = new Date();
 
-  //  eas build -p android --profile preview
-  // (o --profile production si querés una versión final).
+    setAlarmasProgramadas((prev) =>
+      prev.filter((alarma) => {
+        if (!alarma.unavez) return true;
 
-  //npx expo install expo-notifications
+        const fecha = new Date(alarma.fechaDisparo);
+        return fecha > ahora;
+      }),
+    );
+  }, []);
 
   const programarNotificacion = async (alarma) => {
     try {
-      const now = new Date();
+      console.log("ANTES");
+      const { hora, minutos, unavez, dias, mensaje } = alarma;
+
+      const ahora = new Date();
       const fecha = new Date();
 
-      fecha.setHours(parseInt(alarma.hora, 10));
-      fecha.setMinutes(parseInt(alarma.minutos, 10));
+      fecha.setHours(parseInt(hora));
+      fecha.setMinutes(parseInt(minutos));
       fecha.setSeconds(0);
 
-      // Si la hora ya pasó hoy → programar para mañana
-      if (fecha <= now) fecha.setDate(fecha.getDate() + 1);
+      // Si es una sola vez y ya pasó hoy → mañana
+      if (unavez && fecha <= ahora) {
+        fecha.setDate(fecha.getDate() + 1);
+      }
 
-      const notificationId = await Notifications.scheduleNotificationAsync({
+      console.log("📅 Se va a disparar a:", fecha.toString());
+
+      const id = await Notifications.scheduleNotificationAsync({
         content: {
-          title: "⏰ Alarma",
-          body: `Son las ${alarma.hora}:${alarma.minutos}`,
-          sound: alarma.sonido?.nombre || "default",
+          title: "Despertapp",
+          body: alarma.mensaje || "Notificación",
+          sound: true,
         },
-        trigger: { type: "date", date: fecha },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: fecha,
+          channelId: "alarmas",
+        },
       });
 
-      return notificationId;
+      console.log("DESPUÉS", id);
+
+      console.log("📢 ID generado:", id);
+      return id;
     } catch (error) {
-      console.log("Error al programar notificación:", error);
+      console.error("❌ Error programando notificación:", error);
     }
   };
 
@@ -180,8 +181,6 @@ export const AlarmaProvider = ({ children }) => {
       console.log("❌ Error al cancelar notificación:", error);
     }
   };
-
-  //npm install @react-native-async-storage/async-storage
 
   useEffect(() => {
     AsyncStorage.setItem("alarmas", JSON.stringify(alarmasProgramadas));
@@ -204,84 +203,39 @@ export const AlarmaProvider = ({ children }) => {
     })();
   }, []);
 
-  // useEffect disparador de la alarma:
-  useEffect(() => {
-    const intervalo = setInterval(() => {
-      const ahora = new Date();
-      const horaActual = ahora.getHours().toString().padStart(2, "0");
-      const minutosActuales = ahora.getMinutes().toString().padStart(2, "0");
-
-      const diasSemana = [
-        "Domingo",
-        "Lunes",
-        "Martes",
-        "Miercoles",
-        "Jueves",
-        "Viernes",
-        "Sabado",
-      ];
-      const diaActual = diasSemana[ahora.getDay()];
-
-      alarmasProgramadas.forEach((alarma) => {
-        // Si es "una vez" y coincide la hora → sonar
-        if (
-          alarma.unavez &&
-          alarma.hora === horaActual &&
-          alarma.minutos === minutosActuales
-        ) {
-          reproducirSonido(alarma.sonido.nombre);
-
-          return;
-        }
-
-        // 🔹 Si tiene días definidos y hoy está incluido
-        if (
-          Array.isArray(alarma.dias) &&
-          alarma.dias.includes(diaActual) &&
-          alarma.hora === horaActual &&
-          alarma.minutos === minutosActuales
-        ) {
-          reproducirSonido(alarma.sonido?.nombre ?? "Alarma Despetador");
-        }
-      });
-
-      const alarmasRestantes = alarmasProgramadas.filter((alarma) => {
-        // Si es una alarma "de una vez" y ya sonó, la quitamos
-        if (
-          alarma.unavez &&
-          alarma.hora === horaActual &&
-          alarma.minutos === minutosActuales
-        ) {
-          return false;
-        }
-
-        return true;
-      });
-
-      if (alarmasRestantes.length !== alarmasProgramadas.length) {
-        setAlarmasProgramadas(alarmasRestantes);
-      }
-    }, 1000 * 20);
-
-    return () => clearInterval(intervalo);
-  }, [alarmasProgramadas]);
-
   const abrirModal = () => setIsOpenModal(true);
   const cerrarModal = () => setIsOpenModal(false);
 
-  const agregarAlarma = async (nuevaAlarma) => {
-    const notificationId = await programarNotificacion(nuevaAlarma);
-    const alarmaConNotificacion = { ...nuevaAlarma, notificationId };
-    setAlarmasProgramadas((prev) => [...prev, alarmaConNotificacion]);
+  const agregarAlarma = async (alarma) => {
+    const notificationId = await programarNotificacion(alarma);
+
+    const fechaDisparo = new Date();
+    fechaDisparo.setHours(parseInt(alarma.hora));
+    fechaDisparo.setMinutes(parseInt(alarma.minutos));
+    fechaDisparo.setSeconds(0);
+
+    if (alarma.unavez && fechaDisparo <= new Date()) {
+      fechaDisparo.setDate(fechaDisparo.getDate() + 1);
+    }
+
+    setAlarmasProgramadas((prev) => [
+      ...prev,
+      {
+        ...alarma,
+        notificationId,
+        fechaDisparo: fechaDisparo.toISOString(),
+      },
+    ]);
   };
 
-  const borrarItemAlarma = async (item) => {
-    if (item.notificationId) {
-      await Notifications.cancelScheduledNotificationAsync(item.notificationId);
+  const borrarItemAlarma = async (alarma) => {
+    if (alarma.notificationId) {
+      await Notifications.cancelScheduledNotificationAsync(
+        alarma.notificationId,
+      );
     }
-    setAlarmasProgramadas((prev) =>
-      prev.filter((alarma) => alarma.id !== item.id)
-    );
+
+    setAlarmasProgramadas((prev) => prev.filter((a) => a.id !== alarma.id));
   };
 
   return (
@@ -298,8 +252,8 @@ export const AlarmaProvider = ({ children }) => {
         agregarAlarma,
         borrarItemAlarma,
         obtenerProximasAlarmas,
-        cancelarNotificacion,
         programarNotificacion,
+        cancelarNotificacion,
       }}
     >
       {children}

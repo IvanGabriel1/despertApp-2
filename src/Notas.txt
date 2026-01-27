@@ -20,3 +20,36 @@ Me alerta de unas vulnerabilidades y se resolvieron con el comando npm audit fix
 
 ejecutar este comando para que luego se vincule con el simulador android
 npx expo start --dev-client
+
+expo run:android no es para todos los días
+Se usa cuando: tocás cosas nativas, agregás permisos, agregás libs nativas, se rompe el build.
+
+
+Usar celular fisico android conectado en USB
+
+🟢 PASO 1 — Conectar el celular
+
+USB conectado
+Depuración USB activada
+Confirmá:
+adb devices
+
+Debe salir tu celular como device
+
+🟢 PASO 2 — Redireccionar el puerto (CLAVE)
+adb reverse tcp:8081 tcp:8081
+
+
+👉 SIEMPRE antes de levantar Metro.
+
+🟢 PASO 3 — Levantar Metro (solo esto)
+npx expo start --dev-client
+
+🟢 PASO 4 — Abrir la app MANUALMENTE
+
+📱 En el celular:
+
+Abrí despertApp
+
+
+👉 En Android, Expo Notifications EXIGE que exista un notification channel

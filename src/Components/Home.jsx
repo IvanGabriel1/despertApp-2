@@ -53,7 +53,7 @@ const Home = () => {
 
   useEffect(() => {
     alert(
-      "La aplicacion se encuentra en desarrollo, por el momento las alarmas solo funcionarán si la aplicación se encuentra en primer plano"
+      "La aplicacion se encuentra en desarrollo, por el momento las alarmas solo funcionarán si la aplicación se encuentra en primer plano",
     );
   }, []);
 
@@ -80,6 +80,8 @@ const Home = () => {
                 minute: "2-digit",
                 hour12: false,
               })}
+              {"\n"}
+              mensaje: {a.mensaje}
             </Text>
           ))
         )}

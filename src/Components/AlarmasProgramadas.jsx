@@ -11,8 +11,6 @@ import React, { useContext, useRef, useState, useEffect } from "react";
 import { colors } from "../Global/colors";
 import { AlarmaContext } from "../Context/AlarmaContext";
 import { SafeAreaView } from "react-native-safe-area-context";
-import SonidoAcordeon from "./SonidoAcordeon";
-import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AlarmasProgramadas = () => {
@@ -20,7 +18,7 @@ const AlarmasProgramadas = () => {
   const [alarmaSeleccionada, setAlarmaSeleccionada] = useState(null);
   const [nuevaHora, setNuevaHora] = useState(null);
   const [nuevaMinutos, setNuevaMinutos] = useState(null);
-  const [sonidoElegido, setSonidoElegido] = useState(null);
+  const [nuevaMensaje, setNuevaMensaje] = useState(null);
 
   const [lunes, setLunes] = useState(false);
   const [martes, setMartes] = useState(false);
@@ -36,35 +34,9 @@ const AlarmasProgramadas = () => {
     setAlarmasProgramadas,
     programarNotificacion,
     cancelarNotificacion,
+    cerrarModal,
   } = useContext(AlarmaContext);
   const minutosRef = useRef(null);
-
-  const sonidos = [
-    {
-      nombre: "Alarma Despetador",
-      archivo: require("../../assets/sonidos/Alarma0.mp3"),
-    },
-    {
-      nombre: "Morning Birds",
-      archivo: require("../../assets/sonidos/morning-birds.mp3"),
-    },
-    {
-      nombre: "Morning Birds 2",
-      archivo: require("../../assets/sonidos/morning-birds2.mp3"),
-    },
-    {
-      nombre: "Homero Renuncio",
-      archivo: require("../../assets/sonidos/homero-renuncio.mp3"),
-    },
-    {
-      nombre: "Oceano",
-      archivo: require("../../assets/sonidos/ocean.mp3"),
-    },
-    {
-      nombre: "Lobo",
-      archivo: require("../../assets/sonidos/wolf.mp3"),
-    },
-  ];
 
   const diasIguales = (a, b) => {
     if (!Array.isArray(a) || !Array.isArray(b)) return false;
@@ -92,7 +64,7 @@ const AlarmasProgramadas = () => {
           (t) =>
             t.hora === item.hora &&
             t.minutos === item.minutos &&
-            diasIguales(t.dias, item.dias)
+            diasIguales(t.dias, item.dias),
         )
       );
     });
@@ -115,10 +87,11 @@ const AlarmasProgramadas = () => {
 
   const btnCerrarModalUnaVez = () => {
     setIsOpenModalProgramadas(false);
+
     setNuevaHora(null);
     setNuevaMinutos(null);
     setAlarmaSeleccionada(null);
-    setSonidoElegido(null);
+
     setLunes(false);
     setMartes(false);
     setMiercoles(false);
@@ -133,12 +106,11 @@ const AlarmasProgramadas = () => {
 
     if (nuevaHora === "" || nuevaMinutos === "") {
       alert(
-        "No se puede guardar una alarma vacía. Completá la hora y los minutos."
+        "No se puede guardar una alarma vacía. Completá la hora y los minutos.",
       );
       return;
     }
 
-    // usar variables locales para manipular valores
     let horaFinal =
       nuevaHora && nuevaHora.trim() !== ""
         ? nuevaHora
@@ -147,11 +119,9 @@ const AlarmasProgramadas = () => {
       nuevaMinutos && nuevaMinutos.trim() !== ""
         ? nuevaMinutos
         : alarmaSeleccionada.minutos;
-    let sonidoFinal =
-      sonidoElegido?.nombre ??
-      (typeof alarmaSeleccionada.sonido === "object"
-        ? alarmaSeleccionada.sonido.nombre
-        : alarmaSeleccionada.sonido);
+
+    let mensajeFinal =
+      nuevaMensaje !== null ? nuevaMensaje : alarmaSeleccionada.mensaje;
 
     // formatear a dos dígitos
     if (horaFinal?.length === 1) horaFinal = horaFinal.padStart(2, "0");
@@ -176,47 +146,66 @@ const AlarmasProgramadas = () => {
       ...alarmaSeleccionada,
       hora: horaFinal,
       minutos: minutosFinal,
-      sonido: sonidoFinal,
+      unavez: false,
       dias: nuevosDias,
+      mensaje: mensajeFinal,
     });
 
-    setAlarmasProgramadas((prev) => {
-      const actualizadas = prev.map((item) =>
-        item.id === alarmaSeleccionada.id
-          ? {
-              ...item,
-              hora: horaFinal,
-              minutos: minutosFinal,
-              sonido: sonidoFinal,
-              dias: nuevosDias,
-              notificationId,
-            }
-          : item
-      );
+    const alarmaActualizada = {
+      ...alarmaSeleccionada,
+      hora: horaFinal,
+      minutos: minutosFinal,
+      dias: nuevosDias,
+      unavez: false,
+      mensaje: mensajeFinal,
+      notificationId,
+    };
 
-      const unicas = actualizadas.filter(
-        (item, index, self) =>
-          index ===
-          self.findIndex(
-            (t) =>
-              t.hora === item.hora &&
-              t.minutos === item.minutos &&
-              t.unavez === item.unavez &&
-              diasIguales(t.dias, item.dias)
-          )
-      );
+    setAlarmasProgramadas((prev) =>
+      prev.map((item) =>
+        item.id === alarmaSeleccionada.id ? alarmaActualizada : item,
+      ),
+    );
 
-      return unicas;
-    });
+    // setAlarmasProgramadas((prev) => {
+    //   const actualizadas = prev.map((item) =>
+    //     item.id === alarmaSeleccionada.id
+    //       ? {
+    //           ...item,
+    //           hora: horaFinal,
+    //           minutos: minutosFinal,
+    //           sonido: sonidoFinal,
+    //           dias: nuevosDias,
+    //           notificationId,
+    //           mensaje: mensajeFinal,
+    //         }
+    //       : item,
+    //   );
+
+    //   const unicas = actualizadas.filter(
+    //     (item, index, self) =>
+    //       index ===
+    //       self.findIndex(
+    //         (t) =>
+    //           t.hora === item.hora &&
+    //           t.minutos === item.minutos &&
+    //           t.unavez === item.unavez &&
+    //           t.mensaje === item.mensaje &&
+    //           diasIguales(t.dias, item.dias),
+    //       ),
+    //   );
+
+    //   return unicas;
+    // });
+    btnCerrarModalUnaVez();
 
     alert(`Alarma actualizada a ${horaFinal}:${minutosFinal}`);
-    btnCerrarModalUnaVez();
   };
 
   useEffect(() => {
     AsyncStorage.setItem(
       "alarmasProgramadas",
-      JSON.stringify(alarmasProgramadas)
+      JSON.stringify(alarmasProgramadas),
     )
       .then(() => console.log("✅ Alarmas guardadas en AsyncStorage"))
       .catch((err) => console.log("❌ Error guardando alarmas:", err));
@@ -224,7 +213,9 @@ const AlarmasProgramadas = () => {
 
   return (
     <SafeAreaView style={styles.alarmasDeUnaVezContainer}>
-      <Text style={styles.alarmasDeUnaVezTitle}>Alarmas Programadas:</Text>
+      <Text style={styles.alarmasDeUnaVezTitle}>
+        Notificaciones Programadas:
+      </Text>
       <View style={styles.listaAlarmasDeUnaVezContainer}>
         <FlatList
           data={alarmasProgramadasDias}
@@ -298,6 +289,12 @@ const AlarmasProgramadas = () => {
                     <Text style={styles.diaPressableText}>D</Text>
                   </View>
                 </View>
+              </View>
+
+              <View style={styles.alarmasProgramadasMensajeContainer}>
+                <Text style={styles.alarmasProgramadasMensajeTexto}>
+                  {item.mensaje}
+                </Text>
               </View>
 
               <View style={styles.alarmasDeUnaVezContenedorBotones}>
@@ -468,12 +465,20 @@ const AlarmasProgramadas = () => {
               </Pressable>
             </View>
 
+            <Text>Texto del mensaje:</Text>
+
             {alarmaSeleccionada && (
-              <SonidoAcordeon
-                sonidos={sonidos}
-                onSeleccionar={(sonido) => setSonidoElegido(sonido)}
-                sonidoInicial={alarmaSeleccionada.sonido}
-              />
+              <View style={styles.textinputModalContainer}>
+                <TextInput
+                  style={styles.textinputModal}
+                  value={
+                    nuevaMensaje === null
+                      ? alarmaSeleccionada.mensaje
+                      : nuevaMensaje
+                  }
+                  onChangeText={setNuevaMensaje}
+                />
+              </View>
             )}
 
             <Pressable
@@ -590,6 +595,10 @@ const styles = StyleSheet.create({
   diaSemanaActivo: {
     backgroundColor: colors.primario,
   },
+  alarmasProgramadasMensajeContainer: {},
+  alarmasProgramadasMensajeTexto: {},
+  textinputModalContainer: {},
+  textinputModal: {},
   // Styles Modal:
   modalProgramadasContainer: {
     marginTop: 86,
