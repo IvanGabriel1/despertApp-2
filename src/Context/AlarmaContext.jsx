@@ -26,6 +26,9 @@ export const AlarmaProvider = ({ children }) => {
     mensaje: "",
   });
   const [alarmasProgramadas, setAlarmasProgramadas] = useState([]);
+  const [cargado, setCargado] = useState(false);
+  const abrirModal = () => setIsOpenModal(true);
+  const cerrarModal = () => setIsOpenModal(false);
 
   const diaSemana = [
     "Domingo",
@@ -36,17 +39,6 @@ export const AlarmaProvider = ({ children }) => {
     "Viernes",
     "Sabado",
   ];
-  const hoy = diaSemana[new Date().getDay()];
-
-  const diasANumero = {
-    Domingo: 0,
-    Lunes: 1,
-    Martes: 2,
-    Miercoles: 3,
-    Jueves: 4,
-    Viernes: 5,
-    Sabado: 6,
-  };
 
   useEffect(() => {
     if (Platform.OS === "android") {
@@ -58,6 +50,56 @@ export const AlarmaProvider = ({ children }) => {
         lightColor: "#FF231F7C",
       });
     }
+  }, []);
+
+  useEffect(() => {
+    const sub = Notifications.addNotificationReceivedListener(
+      async (notification) => {
+        const alarmaId = notification.request.content.data?.alarmaId;
+        if (!alarmaId) return;
+
+        setAlarmasProgramadas((prev) => {
+          const alarma = prev.find((a) => a.id === alarmaId);
+          if (!alarma) return prev;
+
+          // 🟢 alarma de una vez → borrar
+          if (alarma.unavez) {
+            return prev.filter((a) => a.id !== alarmaId);
+          }
+
+          // 🔁 alarma por días → reprogramar
+          programarNotificacionPorDias(alarma);
+          return prev;
+        });
+      },
+    );
+
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const guardadas = await AsyncStorage.getItem("alarmas");
+      if (guardadas) {
+        setAlarmasProgramadas(JSON.parse(guardadas));
+      }
+      setCargado(true); // 👈 clave
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!cargado) return;
+
+    AsyncStorage.setItem("alarmas", JSON.stringify(alarmasProgramadas));
+  }, [alarmasProgramadas, cargado]);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") {
+        alert("Debes habilitar las notificaciones para usar las alarmas.");
+      }
+    })();
   }, []);
 
   const cancelarNotificacion = async (id) => {
@@ -154,104 +196,33 @@ export const AlarmaProvider = ({ children }) => {
     return futuras.slice(0, 2);
   };
 
-  //Limpieza de notificaciones de una vez que ya pasaron
-  // useEffect(() => {
-  //   const ahora = new Date();
-
-  //   setAlarmasProgramadas((prev) =>
-  //     prev.filter((alarma) => {
-  //       if (!alarma.unavez) return true;
-
-  //       const fecha = new Date(alarma.fechaDisparo);
-  //       return fecha > ahora;
-  //     }),
-  //   );
-  // }, []);
-
-  useEffect(() => {
-    const sub = Notifications.addNotificationReceivedListener(
-      async (notification) => {
-        const alarmaId = notification.request.content.data?.alarmaId;
-        if (!alarmaId) return;
-
-        setAlarmasProgramadas((prev) => {
-          const alarma = prev.find((a) => a.id === alarmaId);
-          if (!alarma) return prev;
-
-          // 🟢 alarma de una vez → borrar
-          if (alarma.unavez) {
-            return prev.filter((a) => a.id !== alarmaId);
-          }
-
-          // 🔁 alarma por días → reprogramar
-          programarNotificacionPorDias(alarma);
-          return prev;
-        });
-      },
-    );
-
-    return () => sub.remove();
-  }, []);
-
   const programarNotificacion = async (alarma) => {
     const ahora = new Date();
+    const fecha = new Date();
 
-    // 🧠 1. Si ya viene una fecha calculada, usarla
-    let fecha = alarma.fecha ? new Date(alarma.fecha) : new Date();
+    fecha.setHours(Number(alarma.hora));
+    fecha.setMinutes(Number(alarma.minutos));
+    fecha.setSeconds(0);
 
-    // 🧠 2. Si NO viene fecha, calcularla normalmente
-    if (!alarma.fecha) {
-      fecha.setHours(parseInt(alarma.hora));
-      fecha.setMinutes(parseInt(alarma.minutos));
-      fecha.setSeconds(0);
-
-      if (alarma.unavez && fecha <= ahora) {
-        fecha.setDate(fecha.getDate() + 1);
-      }
+    if (alarma.unavez && fecha <= ahora) {
+      fecha.setDate(fecha.getDate() + 1);
     }
-
-    console.log("⏰ Programada para:", fecha.toString());
 
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title: "Despertapp",
         body: alarma.mensaje || "Notificación",
         sound: true,
-        data: {
-          alarmaId: alarma.id, // 👈 importante para borrado automático
-        },
+        data: { alarmaId: alarma.id },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: fecha, // ✅ fecha absoluta real
+        date: fecha,
         channelId: "alarmas",
       },
     });
 
     return id;
-  };
-
-  const calcularProximaFechaPorDias = (alarma) => {
-    const ahora = new Date();
-
-    for (let i = 0; i < 7; i++) {
-      const fecha = new Date();
-      fecha.setDate(ahora.getDate() + i);
-
-      const diaNombre = diaSemana[fecha.getDay()];
-
-      if (alarma.dias.includes(diaNombre)) {
-        fecha.setHours(Number(alarma.hora));
-        fecha.setMinutes(Number(alarma.minutos));
-        fecha.setSeconds(0);
-
-        if (fecha > ahora) {
-          return fecha;
-        }
-      }
-    }
-
-    return null;
   };
 
   const programarNotificacionPorDias = async (alarma) => {
@@ -281,52 +252,6 @@ export const AlarmaProvider = ({ children }) => {
     }
 
     return ids;
-  };
-
-  useEffect(() => {
-    AsyncStorage.setItem("alarmas", JSON.stringify(alarmasProgramadas));
-  }, [alarmasProgramadas]);
-
-  useEffect(() => {
-    (async () => {
-      const guardadas = await AsyncStorage.getItem("alarmas");
-      if (!guardadas) return;
-
-      const alarmas = JSON.parse(guardadas);
-      setAlarmasProgramadas(alarmas);
-
-      await reprogramarAlarmas(alarmas);
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== "granted") {
-        alert("Debes habilitar las notificaciones para usar las alarmas.");
-      }
-    })();
-  }, []);
-
-  const abrirModal = () => setIsOpenModal(true);
-  const cerrarModal = () => setIsOpenModal(false);
-
-  const reprogramarAlarmas = async (alarmas) => {
-    for (const alarma of alarmas) {
-      if (alarma.notificationIds) {
-        await cancelarNotificacionesPorDias(alarma.notificationIds);
-      }
-
-      if (alarma.unavez) {
-        const id = await programarNotificacion(alarma);
-        alarma.notificationIds = [id];
-      } else {
-        const ids = await programarNotificacionPorDias(alarma);
-        alarma.notificationIds = ids;
-      }
-    }
-
-    setAlarmasProgramadas([...alarmas]);
   };
 
   const agregarAlarma = async (alarma) => {

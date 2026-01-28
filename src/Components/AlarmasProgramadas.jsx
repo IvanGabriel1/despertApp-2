@@ -19,14 +19,17 @@ const AlarmasProgramadas = () => {
   const [nuevaHora, setNuevaHora] = useState(null);
   const [nuevaMinutos, setNuevaMinutos] = useState(null);
   const [nuevaMensaje, setNuevaMensaje] = useState(null);
+  const [diasSeleccionados, setDiasSeleccionados] = useState([]);
 
-  const [lunes, setLunes] = useState(false);
-  const [martes, setMartes] = useState(false);
-  const [miercoles, setMiercoles] = useState(false);
-  const [jueves, setJueves] = useState(false);
-  const [viernes, setViernes] = useState(false);
-  const [sabado, setSabado] = useState(false);
-  const [domingo, setDomingo] = useState(false);
+  const DIAS = [
+    { label: "L", value: "Lunes" },
+    { label: "M", value: "Martes" },
+    { label: "M", value: "Miercoles" },
+    { label: "J", value: "Jueves" },
+    { label: "V", value: "Viernes" },
+    { label: "S", value: "Sabado" },
+    { label: "D", value: "Domingo" },
+  ];
 
   const {
     alarmasProgramadas,
@@ -76,18 +79,8 @@ const AlarmasProgramadas = () => {
     setNuevaHora(null);
     setNuevaMinutos(null);
     setNuevaMensaje(null);
+    setDiasSeleccionados(item.dias || []);
     setIsOpenModalProgramadas(true);
-    obtenerDiasSemana(item);
-  };
-
-  const obtenerDiasSemana = (item) => {
-    if (item.dias.includes("Lunes")) setLunes(true);
-    if (item.dias.includes("Martes")) setMartes(true);
-    if (item.dias.includes("Miercoles")) setMiercoles(true);
-    if (item.dias.includes("Jueves")) setJueves(true);
-    if (item.dias.includes("Viernes")) setViernes(true);
-    if (item.dias.includes("Sabado")) setSabado(true);
-    if (item.dias.includes("Domingo")) setDomingo(true);
   };
 
   const btnCerrarModalUnaVez = () => {
@@ -96,14 +89,8 @@ const AlarmasProgramadas = () => {
     setNuevaHora(null);
     setNuevaMinutos(null);
     setAlarmaSeleccionada(null);
-
-    setLunes(false);
-    setMartes(false);
-    setMiercoles(false);
-    setJueves(false);
-    setViernes(false);
-    setSabado(false);
-    setDomingo(false);
+    setNuevaMensaje(null);
+    setDiasSeleccionados([]);
   };
 
   const guardarCambios = async () => {
@@ -112,13 +99,7 @@ const AlarmasProgramadas = () => {
         nuevaHora,
         nuevaMinutos,
         nuevaMensaje,
-        lunes,
-        martes,
-        miercoles,
-        jueves,
-        viernes,
-        sabado,
-        domingo,
+        diasSeleccionados,
       });
       if (!alarmaSeleccionada) return;
 
@@ -145,19 +126,12 @@ const AlarmasProgramadas = () => {
         minutosFinal = minutosFinal.padStart(2, "0");
 
       // guardar cambios realizados en los dias:
-      const nuevosDias = [];
-      if (lunes) nuevosDias.push("Lunes");
-      if (martes) nuevosDias.push("Martes");
-      if (miercoles) nuevosDias.push("Miercoles");
-      if (jueves) nuevosDias.push("Jueves");
-      if (viernes) nuevosDias.push("Viernes");
-      if (sabado) nuevosDias.push("Sabado");
-      if (domingo) nuevosDias.push("Domingo");
-
-      if (nuevosDias.length === 0) {
+      if (diasSeleccionados.length === 0) {
         alert("Tenés que seleccionar al menos un día");
         return;
       }
+
+      const nuevosDias = diasSeleccionados;
 
       console.log("➡️ antes de cancelar");
       if (alarmaSeleccionada.notificationIds) {
@@ -165,7 +139,6 @@ const AlarmasProgramadas = () => {
       }
       console.log("➡️ despues de cancelar");
 
-      console.log("➡️ antes de cancelar");
       const notificationIds = await programarNotificacionPorDias({
         ...alarmaSeleccionada,
         hora: horaFinal,
@@ -200,17 +173,23 @@ const AlarmasProgramadas = () => {
     }
   };
 
-  useEffect(() => {
-    AsyncStorage.setItem(
-      "alarmasProgramadas",
-      JSON.stringify(alarmasProgramadas),
-    )
-      .then(() => console.log("✅ Alarmas guardadas en AsyncStorage"))
-      .catch((err) => console.log("❌ Error guardando alarmas:", err));
-  }, [alarmasProgramadas]);
+  // useEffect(() => {
+  //   AsyncStorage.setItem(
+  //     "alarmasProgramadas",
+  //     JSON.stringify(alarmasProgramadas),
+  //   )
+  //     .then(() => console.log("✅ Alarmas guardadas en AsyncStorage"))
+  //     .catch((err) => console.log("❌ Error guardando alarmas:", err));
+  // }, [alarmasProgramadas]);
 
   const btnPrueba = () => {
     console.log("holas");
+  };
+
+  const toggleDia = (dia) => {
+    setDiasSeleccionados((prev) =>
+      prev.includes(dia) ? prev.filter((d) => d !== dia) : [...prev, dia],
+    );
   };
 
   return (
@@ -234,61 +213,19 @@ const AlarmasProgramadas = () => {
 
               <View style={styles.diasViewContainer}>
                 <View style={styles.diasContainer}>
-                  <View
-                    style={[
-                      styles.diaView,
-                      item.dias.includes("Lunes") && styles.diaSemanaActivo,
-                    ]}
-                  >
-                    <Text style={styles.diaPressableText}>L</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.diaView,
-                      item.dias.includes("Martes") && styles.diaSemanaActivo,
-                    ]}
-                  >
-                    <Text style={styles.diaPressableText}>M</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.diaView,
-                      item.dias.includes("Miercoles") && styles.diaSemanaActivo,
-                    ]}
-                  >
-                    <Text style={styles.diaPressableText}>M</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.diaView,
-                      item.dias.includes("Jueves") && styles.diaSemanaActivo,
-                    ]}
-                  >
-                    <Text style={styles.diaPressableText}>J</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.diaView,
-                      item.dias.includes("Viernes") && styles.diaSemanaActivo,
-                    ]}
-                  >
-                    <Text style={styles.diaPressableText}>V</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.diaView,
-                      item.dias.includes("Sabado") && styles.diaSemanaActivo,
-                    ]}
-                  >
-                    <Text style={styles.diaPressableText}>S</Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.diaView,
-                      item.dias.includes("Domingo") && styles.diaSemanaActivo,
-                    ]}
-                  >
-                    <Text style={styles.diaPressableText}>D</Text>
+                  <View style={styles.diasContainer}>
+                    {DIAS.map((dia) => (
+                      <Pressable
+                        key={dia.value}
+                        style={[
+                          styles.diaView,
+                          item.dias.includes(dia.value) &&
+                            styles.diaSemanaActivo,
+                        ]}
+                      >
+                        <Text style={styles.diaPressableText}>{dia.label}</Text>
+                      </Pressable>
+                    ))}
                   </View>
                 </View>
               </View>
@@ -423,48 +360,19 @@ const AlarmasProgramadas = () => {
             )}
 
             <View style={styles.diasContainer}>
-              <Pressable
-                style={[styles.diaView, lunes && styles.diaSemanaActivo]}
-                onPress={() => setLunes(!lunes)}
-              >
-                <Text style={styles.diaPressableText}>L</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.diaView, martes && styles.diaSemanaActivo]}
-                onPress={() => setMartes(!martes)}
-              >
-                <Text style={styles.diaPressableText}>M</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.diaView, miercoles && styles.diaSemanaActivo]}
-                onPress={() => setMiercoles(!miercoles)}
-              >
-                <Text style={styles.diaPressableText}>M</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.diaView, jueves && styles.diaSemanaActivo]}
-                onPress={() => setJueves(!jueves)}
-              >
-                <Text style={styles.diaPressableText}>J</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.diaView, viernes && styles.diaSemanaActivo]}
-                onPress={() => setViernes(!viernes)}
-              >
-                <Text style={styles.diaPressableText}>V</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.diaView, sabado && styles.diaSemanaActivo]}
-                onPress={() => setSabado(!sabado)}
-              >
-                <Text style={styles.diaPressableText}>S</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.diaView, domingo && styles.diaSemanaActivo]}
-                onPress={() => setDomingo(!domingo)}
-              >
-                <Text style={styles.diaPressableText}>D</Text>
-              </Pressable>
+              {DIAS.map((dia) => (
+                <Pressable
+                  key={dia.value}
+                  style={[
+                    styles.diaView,
+                    diasSeleccionados.includes(dia.value) &&
+                      styles.diaSemanaActivo,
+                  ]}
+                  onPress={() => toggleDia(dia.value)}
+                >
+                  <Text style={styles.diaPressableText}>{dia.label}</Text>
+                </Pressable>
+              ))}
             </View>
 
             <Text>Texto del mensaje:</Text>

@@ -11,15 +11,11 @@ const Home = () => {
     mes: "",
     anio: "",
   });
-  const [alarmas, setAlarmas] = useState({});
   const [proximasAlarmas, setProximasAlarmas] = useState([]);
 
   const {
     isOpenModal,
     setIsOpenModal,
-    cerrarModal,
-    creandoAlarma,
-    setCreandoAlarma,
     alarmasProgramadas,
     obtenerProximasAlarmas,
   } = useContext(AlarmaContext);
@@ -28,9 +24,6 @@ const Home = () => {
     const proximas = obtenerProximasAlarmas(alarmasProgramadas);
     setProximasAlarmas(proximas);
   }, [alarmasProgramadas]);
-
-  // const [hora, setHora] = useState("");
-  // const [minutos, setMinutos] = useState("");
 
   useEffect(() => {
     const intervalo = setInterval(() => {
@@ -49,12 +42,6 @@ const Home = () => {
     }, 1000);
 
     return () => clearInterval(intervalo);
-  }, []);
-
-  useEffect(() => {
-    alert(
-      "La aplicacion se encuentra en desarrollo, por el momento las alarmas solo funcionarán si la aplicación se encuentra en primer plano",
-    );
   }, []);
 
   const handleOpenModal = () => {

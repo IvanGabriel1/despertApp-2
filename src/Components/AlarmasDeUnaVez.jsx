@@ -11,7 +11,6 @@ import React, { useContext, useRef, useState } from "react";
 import { colors } from "../Global/colors";
 import { AlarmaContext } from "../Context/AlarmaContext";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Notifications from "expo-notifications";
 
 const AlarmasDeUnaVez = () => {
   const [isOpenModalUnaVez, setIsOpenModalUnaVez] = useState(false);
@@ -24,7 +23,6 @@ const AlarmasDeUnaVez = () => {
     alarmasProgramadas,
     borrarItemAlarma,
     setAlarmasProgramadas,
-
     programarNotificacion,
     cancelarNotificacion,
   } = useContext(AlarmaContext);
@@ -68,13 +66,6 @@ const AlarmasDeUnaVez = () => {
   const guardarCambios = async () => {
     if (!alarmaSeleccionada) return;
 
-    const horaValida = horaFinal !== "" && minutosFinal !== "";
-
-    if (!horaValida) {
-      alert("Hora inválida");
-      return;
-    }
-
     // usar variables locales para manipular valores
     let horaFinal =
       nuevaHora && nuevaHora.trim() !== ""
@@ -84,6 +75,13 @@ const AlarmasDeUnaVez = () => {
       nuevaMinutos && nuevaMinutos.trim() !== ""
         ? nuevaMinutos
         : alarmaSeleccionada.minutos;
+
+    const horaValida = horaFinal !== "" && minutosFinal !== "";
+
+    if (!horaValida) {
+      alert("Hora inválida");
+      return;
+    }
 
     let mensajeFinal =
       nuevaMensaje !== null ? nuevaMensaje : alarmaSeleccionada.mensaje;
