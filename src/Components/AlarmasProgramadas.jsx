@@ -35,6 +35,8 @@ const AlarmasProgramadas = () => {
     programarNotificacion,
     cancelarNotificacion,
     cerrarModal,
+    programarNotificacionPorDias,
+    cancelarNotificacionesPorDias,
   } = useContext(AlarmaContext);
   const minutosRef = useRef(null);
 
@@ -71,6 +73,9 @@ const AlarmasProgramadas = () => {
 
   const btnEditar = (item) => {
     setAlarmaSeleccionada(item);
+    setNuevaHora(null);
+    setNuevaMinutos(null);
+    setNuevaMensaje(null);
     setIsOpenModalProgramadas(true);
     obtenerDiasSemana(item);
   };
@@ -102,104 +107,97 @@ const AlarmasProgramadas = () => {
   };
 
   const guardarCambios = async () => {
-    if (!alarmaSeleccionada) return;
+    try {
+      console.log("🧠 guardarCambios ejecutado", {
+        nuevaHora,
+        nuevaMinutos,
+        nuevaMensaje,
+        lunes,
+        martes,
+        miercoles,
+        jueves,
+        viernes,
+        sabado,
+        domingo,
+      });
+      if (!alarmaSeleccionada) return;
 
-    if (nuevaHora === "" || nuevaMinutos === "") {
-      alert(
-        "No se puede guardar una alarma vacía. Completá la hora y los minutos.",
+      let horaFinal =
+        nuevaHora && nuevaHora.trim() !== ""
+          ? nuevaHora
+          : alarmaSeleccionada.hora;
+      let minutosFinal =
+        nuevaMinutos && nuevaMinutos.trim() !== ""
+          ? nuevaMinutos
+          : alarmaSeleccionada.minutos;
+
+      if (!horaFinal || !minutosFinal) {
+        alert("La alarma debe tener hora y minutos");
+        return;
+      }
+
+      let mensajeFinal =
+        nuevaMensaje !== null ? nuevaMensaje : alarmaSeleccionada.mensaje;
+
+      // formatear a dos dígitos
+      if (horaFinal?.length === 1) horaFinal = horaFinal.padStart(2, "0");
+      if (minutosFinal?.length === 1)
+        minutosFinal = minutosFinal.padStart(2, "0");
+
+      // guardar cambios realizados en los dias:
+      const nuevosDias = [];
+      if (lunes) nuevosDias.push("Lunes");
+      if (martes) nuevosDias.push("Martes");
+      if (miercoles) nuevosDias.push("Miercoles");
+      if (jueves) nuevosDias.push("Jueves");
+      if (viernes) nuevosDias.push("Viernes");
+      if (sabado) nuevosDias.push("Sabado");
+      if (domingo) nuevosDias.push("Domingo");
+
+      if (nuevosDias.length === 0) {
+        alert("Tenés que seleccionar al menos un día");
+        return;
+      }
+
+      console.log("➡️ antes de cancelar");
+      if (alarmaSeleccionada.notificationIds) {
+        await cancelarNotificacionesPorDias(alarmaSeleccionada.notificationIds);
+      }
+      console.log("➡️ despues de cancelar");
+
+      console.log("➡️ antes de cancelar");
+      const notificationIds = await programarNotificacionPorDias({
+        ...alarmaSeleccionada,
+        hora: horaFinal,
+        minutos: minutosFinal,
+        dias: nuevosDias,
+        mensaje: mensajeFinal,
+      });
+      console.log("➡️ despues de programar");
+      console.log("✅ ids generados", notificationIds);
+
+      const alarmaActualizada = {
+        ...alarmaSeleccionada,
+        hora: horaFinal,
+        minutos: minutosFinal,
+        dias: nuevosDias,
+        unavez: false,
+        mensaje: mensajeFinal,
+        notificationIds,
+      };
+
+      setAlarmasProgramadas((prev) =>
+        prev.map((item) =>
+          item.id === alarmaSeleccionada.id ? alarmaActualizada : item,
+        ),
       );
-      return;
+
+      btnCerrarModalUnaVez();
+
+      alert(`Alarma actualizada a ${horaFinal}:${minutosFinal}`);
+    } catch (error) {
+      console.log("Error:", error);
     }
-
-    let horaFinal =
-      nuevaHora && nuevaHora.trim() !== ""
-        ? nuevaHora
-        : alarmaSeleccionada.hora;
-    let minutosFinal =
-      nuevaMinutos && nuevaMinutos.trim() !== ""
-        ? nuevaMinutos
-        : alarmaSeleccionada.minutos;
-
-    let mensajeFinal =
-      nuevaMensaje !== null ? nuevaMensaje : alarmaSeleccionada.mensaje;
-
-    // formatear a dos dígitos
-    if (horaFinal?.length === 1) horaFinal = horaFinal.padStart(2, "0");
-    if (minutosFinal?.length === 1)
-      minutosFinal = minutosFinal.padStart(2, "0");
-
-    // guardar cambios realizados en los dias:
-    const nuevosDias = [];
-    if (lunes) nuevosDias.push("Lunes");
-    if (martes) nuevosDias.push("Martes");
-    if (miercoles) nuevosDias.push("Miercoles");
-    if (jueves) nuevosDias.push("Jueves");
-    if (viernes) nuevosDias.push("Viernes");
-    if (sabado) nuevosDias.push("Sabado");
-    if (domingo) nuevosDias.push("Domingo");
-
-    if (alarmaSeleccionada.notificationId) {
-      await cancelarNotificacion(alarmaSeleccionada.notificationId);
-    }
-
-    const notificationId = await programarNotificacion({
-      ...alarmaSeleccionada,
-      hora: horaFinal,
-      minutos: minutosFinal,
-      unavez: false,
-      dias: nuevosDias,
-      mensaje: mensajeFinal,
-    });
-
-    const alarmaActualizada = {
-      ...alarmaSeleccionada,
-      hora: horaFinal,
-      minutos: minutosFinal,
-      dias: nuevosDias,
-      unavez: false,
-      mensaje: mensajeFinal,
-      notificationId,
-    };
-
-    setAlarmasProgramadas((prev) =>
-      prev.map((item) =>
-        item.id === alarmaSeleccionada.id ? alarmaActualizada : item,
-      ),
-    );
-
-    // setAlarmasProgramadas((prev) => {
-    //   const actualizadas = prev.map((item) =>
-    //     item.id === alarmaSeleccionada.id
-    //       ? {
-    //           ...item,
-    //           hora: horaFinal,
-    //           minutos: minutosFinal,
-    //           sonido: sonidoFinal,
-    //           dias: nuevosDias,
-    //           notificationId,
-    //           mensaje: mensajeFinal,
-    //         }
-    //       : item,
-    //   );
-
-    //   const unicas = actualizadas.filter(
-    //     (item, index, self) =>
-    //       index ===
-    //       self.findIndex(
-    //         (t) =>
-    //           t.hora === item.hora &&
-    //           t.minutos === item.minutos &&
-    //           t.unavez === item.unavez &&
-    //           t.mensaje === item.mensaje &&
-    //           diasIguales(t.dias, item.dias),
-    //       ),
-    //   );
-
-    //   return unicas;
-    // });
-    btnCerrarModalUnaVez();
-
-    alert(`Alarma actualizada a ${horaFinal}:${minutosFinal}`);
   };
 
   useEffect(() => {
@@ -210,6 +208,10 @@ const AlarmasProgramadas = () => {
       .then(() => console.log("✅ Alarmas guardadas en AsyncStorage"))
       .catch((err) => console.log("❌ Error guardando alarmas:", err));
   }, [alarmasProgramadas]);
+
+  const btnPrueba = () => {
+    console.log("holas");
+  };
 
   return (
     <SafeAreaView style={styles.alarmasDeUnaVezContainer}>
@@ -301,8 +303,8 @@ const AlarmasProgramadas = () => {
                 <Pressable
                   style={styles.alarmasDeUnaVezBorrar}
                   onPress={async () => {
-                    if (item.notificationId) {
-                      await cancelarNotificacion(item.notificationId);
+                    if (item.notificationIds) {
+                      await cancelarNotificacionesPorDias(item.notificationIds);
                     }
                     borrarItemAlarma(item);
                   }}
@@ -493,6 +495,10 @@ const AlarmasProgramadas = () => {
               style={styles.botonGuardar}
             >
               <Text style={styles.botonGuardarText}>Guardar</Text>
+            </Pressable>
+
+            <Pressable onPress={() => btnPrueba()}>
+              <Text>prueba</Text>
             </Pressable>
           </View>
         </Modal>

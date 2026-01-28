@@ -11,6 +11,7 @@ import React, { useContext, useRef, useState } from "react";
 import { colors } from "../Global/colors";
 import { AlarmaContext } from "../Context/AlarmaContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Notifications from "expo-notifications";
 
 const AlarmasDeUnaVez = () => {
   const [isOpenModalUnaVez, setIsOpenModalUnaVez] = useState(false);
@@ -23,7 +24,7 @@ const AlarmasDeUnaVez = () => {
     alarmasProgramadas,
     borrarItemAlarma,
     setAlarmasProgramadas,
-    cerrarModal,
+
     programarNotificacion,
     cancelarNotificacion,
   } = useContext(AlarmaContext);
@@ -67,10 +68,10 @@ const AlarmasDeUnaVez = () => {
   const guardarCambios = async () => {
     if (!alarmaSeleccionada) return;
 
-    if (nuevaHora === "" || nuevaMinutos === "") {
-      alert(
-        "No se puede guardar una alarma vacía. Completá la hora y los minutos.",
-      );
+    const horaValida = horaFinal !== "" && minutosFinal !== "";
+
+    if (!horaValida) {
+      alert("Hora inválida");
       return;
     }
 
@@ -96,12 +97,22 @@ const AlarmasDeUnaVez = () => {
       await cancelarNotificacion(alarmaSeleccionada.notificationId);
     }
 
+    const nuevaFechaDisparo = new Date();
+    nuevaFechaDisparo.setHours(parseInt(horaFinal));
+    nuevaFechaDisparo.setMinutes(parseInt(minutosFinal));
+    nuevaFechaDisparo.setSeconds(0);
+
+    if (nuevaFechaDisparo <= new Date()) {
+      nuevaFechaDisparo.setDate(nuevaFechaDisparo.getDate() + 1);
+    }
+
     const notificationId = await programarNotificacion({
       ...alarmaSeleccionada,
       hora: horaFinal,
       minutos: minutosFinal,
       mensaje: mensajeFinal,
       unavez: true,
+      fecha: nuevaFechaDisparo,
     });
 
     setAlarmasProgramadas((prev) => {
