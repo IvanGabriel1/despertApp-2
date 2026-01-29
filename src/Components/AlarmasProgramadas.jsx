@@ -173,19 +173,6 @@ const AlarmasProgramadas = () => {
     }
   };
 
-  // useEffect(() => {
-  //   AsyncStorage.setItem(
-  //     "alarmasProgramadas",
-  //     JSON.stringify(alarmasProgramadas),
-  //   )
-  //     .then(() => console.log("✅ Alarmas guardadas en AsyncStorage"))
-  //     .catch((err) => console.log("❌ Error guardando alarmas:", err));
-  // }, [alarmasProgramadas]);
-
-  const btnPrueba = () => {
-    console.log("holas");
-  };
-
   const toggleDia = (dia) => {
     setDiasSeleccionados((prev) =>
       prev.includes(dia) ? prev.filter((d) => d !== dia) : [...prev, dia],
@@ -193,20 +180,22 @@ const AlarmasProgramadas = () => {
   };
 
   return (
-    <SafeAreaView style={styles.alarmasDeUnaVezContainer}>
-      <Text style={styles.alarmasDeUnaVezTitle}>
+    <SafeAreaView style={styles.notificacionesProgramadasContainer}>
+      <Text style={styles.notificacionesProgramadasTitle}>
         Notificaciones Programadas:
       </Text>
-      <View style={styles.listaAlarmasDeUnaVezContainer}>
+      <View style={styles.listaNotificacionesProgramadasContainer}>
         <FlatList
           data={alarmasProgramadasDias}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.listaAlarmasDeUnaVezItem}>
               <View style={styles.alarmasDeUnaVezHyMItem}>
-                <Text style={styles.alarmasDeUnaVezHora}>{item.hora}</Text>
-                <Text style={styles.alarmasDeUnaVezPuntos}>:</Text>
-                <Text style={styles.alarmasDeUnaVezMinutos}>
+                <Text style={styles.notificacionesDeUnaVezHora}>
+                  {item.hora}
+                </Text>
+                <Text style={styles.notificacionesDeUnaVezPuntos}>:</Text>
+                <Text style={styles.notificacionesDeUnaVezMinutos}>
                   {item.minutos}
                 </Text>
               </View>
@@ -223,22 +212,30 @@ const AlarmasProgramadas = () => {
                             styles.diaSemanaActivo,
                         ]}
                       >
-                        <Text style={styles.diaPressableText}>{dia.label}</Text>
+                        <Text
+                          style={[
+                            styles.diaPressableText,
+                            item.dias.includes(dia.value) &&
+                              styles.diaPressableTextActivo,
+                          ]}
+                        >
+                          {dia.label}
+                        </Text>
                       </Pressable>
                     ))}
                   </View>
                 </View>
               </View>
 
-              <View style={styles.alarmasProgramadasMensajeContainer}>
-                <Text style={styles.alarmasProgramadasMensajeTexto}>
+              <View style={styles.notificacionesProgramadasMensajeContainer}>
+                <Text style={styles.notificacionesProgramadasMensajeTexto}>
                   {item.mensaje}
                 </Text>
               </View>
 
               <View style={styles.alarmasDeUnaVezContenedorBotones}>
                 <Pressable
-                  style={styles.alarmasDeUnaVezBorrar}
+                  style={styles.notificacionesProgramadasBorrar}
                   onPress={async () => {
                     if (item.notificationIds) {
                       await cancelarNotificacionesPorDias(item.notificationIds);
@@ -246,13 +243,17 @@ const AlarmasProgramadas = () => {
                     borrarItemAlarma(item);
                   }}
                 >
-                  <Text style={styles.alarmasDeUnaVezBorrarText}>Borrar</Text>
+                  <Text style={styles.notificacionesProgramadasBorrarText}>
+                    Borrar
+                  </Text>
                 </Pressable>
                 <Pressable
-                  style={styles.alarmasDeUnaVezEditar}
+                  style={styles.notificacionesProgramadasEditar}
                   onPress={() => btnEditar(item)}
                 >
-                  <Text style={styles.alarmasDeUnaVezBorrarText}>Editar</Text>
+                  <Text style={styles.notificacionesProgramadasBorrarText}>
+                    Editar
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -370,12 +371,20 @@ const AlarmasProgramadas = () => {
                   ]}
                   onPress={() => toggleDia(dia.value)}
                 >
-                  <Text style={styles.diaPressableText}>{dia.label}</Text>
+                  <Text
+                    style={[
+                      styles.diaPressableText,
+                      diasSeleccionados.includes(dia.value) &&
+                        styles.diaPressableTextActivo,
+                    ]}
+                  >
+                    {dia.label}
+                  </Text>
                 </Pressable>
               ))}
             </View>
 
-            <Text>Texto del mensaje:</Text>
+            <Text style={styles.mensajeLabel}>Mensaje</Text>
 
             {alarmaSeleccionada && (
               <View style={styles.textinputModalContainer}>
@@ -404,10 +413,6 @@ const AlarmasProgramadas = () => {
             >
               <Text style={styles.botonGuardarText}>Guardar</Text>
             </Pressable>
-
-            <Pressable onPress={() => btnPrueba()}>
-              <Text>prueba</Text>
-            </Pressable>
           </View>
         </Modal>
       </View>
@@ -418,30 +423,43 @@ const AlarmasProgramadas = () => {
 export default AlarmasProgramadas;
 
 const styles = StyleSheet.create({
-  alarmasDeUnaVezContainer: {
+  notificacionesProgramadasContainer: {
     flex: 1,
+    backgroundColor: colors.fondo,
     alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 32,
+    paddingTop: 24,
   },
-  alarmasDeUnaVezTitle: {
+  notificacionesProgramadasTitle: {
     color: colors.primario,
-    fontSize: 32,
-    textDecorationLine: "underline",
+    fontSize: 28,
+    fontWeight: "bold",
     marginBottom: 16,
   },
-  listaAlarmasDeUnaVezContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-  },
-  listaAlarmasDeUnaVezItem: {
+  listaNotificacionesProgramadasContainer: {
     borderRadius: 20,
-    borderWidth: 3,
-    borderColor: colors.primario,
+    backgroundColor: colors.blanco,
     width: 350,
     marginBottom: 16,
+    paddingVertical: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  listaAlarmasDeUnaVezItem: {
+    backgroundColor: colors.blanco,
+    borderRadius: 22,
+    width: 350,
+    marginBottom: 16,
+
+    borderWidth: 2.5,
+    borderColor: colors.primario,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+
+    overflow: "hidden",
   },
   alarmasDeUnaVezHyMItem: {
     flexDirection: "row",
@@ -450,36 +468,47 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  alarmasDeUnaVezPuntos: {
+  notificacionesDeUnaVezPuntos: {
     color: colors.primario,
-    fontSize: 32,
+    fontSize: 36,
+    fontWeight: "bold",
   },
-  alarmasDeUnaVezHora: {
+  notificacionesDeUnaVezHora: {
     color: colors.primario,
-    fontSize: 32,
+    fontSize: 36,
+    fontWeight: "bold",
   },
-  alarmasDeUnaVezMinutos: {
+  notificacionesDeUnaVezMinutos: {
     color: colors.primario,
-    fontSize: 32,
+    fontSize: 36,
+    fontWeight: "bold",
   },
   alarmasDeUnaVezContenedorBotones: {
-    height: 56,
     flexDirection: "row",
+    height: 56,
+    borderTopWidth: 1.5,
+    borderColor: colors.primario,
   },
-  alarmasDeUnaVezBorrar: {
+  notificacionesProgramadasBorrar: {
     flex: 1,
     borderRightWidth: 1,
+    borderBottomLeftRadius: 15,
     borderColor: colors.primario,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: colors.rojoAlphaColor50,
   },
-  alarmasDeUnaVezEditar: {
+  notificacionesProgramadasEditar: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.primarioClaro,
+    borderBottomRightRadius: 15,
   },
-  alarmasDeUnaVezBorrarText: {
-    fontSize: 24,
+  notificacionesProgramadasBorrarText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: colors.secundario,
   },
   // Styles "Dias":
   diasViewContainer: {
@@ -494,51 +523,86 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   diaView: {
-    width: 50,
-    height: 50,
-    padding: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: colors.primario,
     margin: 6,
-    backgroundColor: colors.primarioAlphaColor50,
+    backgroundColor: colors.primarioClaro,
+    alignItems: "center",
+    justifyContent: "center",
   },
   diaPressableText: {
-    margin: "auto",
+    color: colors.primario,
+    fontWeight: "bold",
+  },
+  diaPressableTextActivo: {
     color: colors.blanco,
   },
   diaSemanaActivo: {
     backgroundColor: colors.primario,
   },
-  alarmasProgramadasMensajeContainer: {},
-  alarmasProgramadasMensajeTexto: {},
-  textinputModalContainer: {},
-  textinputModal: {},
+  notificacionesProgramadasMensajeContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.primarioAlphaColor50,
+    backgroundColor: colors.fondo,
+  },
+
+  notificacionesProgramadasMensajeTexto: {
+    color: colors.secundario,
+    fontSize: 15,
+    textAlign: "center",
+    lineHeight: 20,
+    fontStyle: "italic",
+  },
+  textinputModalContainer: {
+    width: "100%",
+    marginTop: 12,
+  },
+  mensajeLabel: {
+    color: colors.primario,
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+  textinputModal: {
+    width: "100%",
+    minHeight: 80,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1.5,
+    borderColor: colors.primario,
+    borderRadius: 14,
+    backgroundColor: colors.blanco,
+    color: colors.secundario,
+    fontSize: 15,
+    lineHeight: 20,
+    textAlignVertical: "top",
+  },
   // Styles Modal:
   modalProgramadasContainer: {
-    marginTop: 86,
-    marginLeft: 32,
-    marginRight: 32,
-    marginBottom: 50,
-    padding: 16,
-
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: colors.primario,
-    backgroundColor: colors.fondo,
-    justifyContent: "center",
+    margin: 24,
+    padding: 20,
+    borderRadius: 24,
+    backgroundColor: colors.blanco,
     alignItems: "center",
-    height: 500,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 6,
   },
   botonCerrarModalProgramadas: {
-    backgroundColor: colors.primario,
-    alignSelf: "center",
-    padding: 6,
-    paddingTop: 2,
-    paddingBottom: 2,
+    backgroundColor: colors.rojo,
     position: "absolute",
-    top: 8,
-    right: 8,
-    borderRadius: 10,
+    top: 12,
+    right: 12,
+    borderRadius: 20,
+    paddingHorizontal: 10,
   },
   textBotonModalProgramadas: {
     color: colors.blanco,
@@ -554,31 +618,31 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   inputsModal: {
-    fontSize: 36,
-    borderWidth: 1,
-    borderColor: colors.primario,
+    width: 64,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: colors.fondo,
     color: colors.primario,
+    fontSize: 32,
+    fontWeight: "bold",
+    textAlign: "center",
   },
   inputsModalPuntos: {
+    fontSize: 32,
+    fontWeight: "bold",
     color: colors.primario,
-    fontSize: 36,
-    margin: 16,
+    marginHorizontal: 10,
   },
   botonGuardar: {
     backgroundColor: colors.primario,
-    maxWidth: 250,
-    borderRadius: 16,
-    marginBottom: 16,
-    padding: 6,
-    paddingLeft: 10,
-    paddingRight: 10,
-    margin: 16,
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    marginTop: 12,
   },
   botonGuardarText: {
-    alignSelf: "center",
-    margin: "auto",
     color: colors.blanco,
-    fontSize: 20,
-    fontWeight: 800,
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

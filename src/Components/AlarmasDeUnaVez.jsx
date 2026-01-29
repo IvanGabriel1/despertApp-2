@@ -267,7 +267,8 @@ const AlarmasDeUnaVez = () => {
               </View>
             )}
 
-            <Text>Texto del mensaje:</Text>
+            <Text style={styles.labelModal}>Mensaje</Text>
+
             {alarmaSeleccionada && (
               <View style={styles.textinputModalContainer}>
                 <TextInput
@@ -307,132 +308,216 @@ export default AlarmasDeUnaVez;
 const styles = StyleSheet.create({
   alarmasDeUnaVezContainer: {
     flex: 1,
+    backgroundColor: colors.fondo,
     alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 32,
+    paddingTop: 24,
   },
+
   alarmasDeUnaVezTitle: {
     color: colors.primario,
-    fontSize: 32,
-    textDecorationLine: "underline",
+    fontSize: 28,
+    fontWeight: "bold",
     marginBottom: 16,
   },
+
   listaAlarmasDeUnaVezContainer: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
     width: "100%",
+    alignItems: "center",
   },
+
   listaAlarmasDeUnaVezItem: {
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: colors.primario,
+    backgroundColor: colors.blanco,
+    borderRadius: 22,
     width: 350,
     marginBottom: 16,
+
+    borderWidth: 2.5,
+    borderColor: colors.primario,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+
+    overflow: "hidden",
   },
+
   alarmasDeUnaVezHyMItem: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderColor: colors.primario,
-    height: 56,
+    height: 64,
     alignItems: "center",
     justifyContent: "center",
+    borderBottomWidth: 1,
+    borderColor: colors.primarioAlphaColor50,
   },
-  alarmasDeUnaVezPuntos: {
-    color: colors.primario,
-    fontSize: 32,
-  },
+
   alarmasDeUnaVezHora: {
     color: colors.primario,
-    fontSize: 32,
-  },
-  alarmasDeUnaVezMinutos: {
-    color: colors.primario,
-    fontSize: 32,
-  },
-  alarmasDeUnaVezContenedorBotones: {
-    height: 56,
-    flexDirection: "row",
-  },
-  alarmasDeUnaVezBorrar: {
-    flex: 1,
-    borderRightWidth: 1,
-    borderColor: colors.primario,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  alarmasDeUnaVezEditar: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  alarmasDeUnaVezBorrarText: {
-    fontSize: 24,
-  },
-  alarmasDeUnaVezMensajeContainer: {},
-  alarmasDeUnaVezMensajeTexto: {},
-  // Styles Modal:
-  modalUnaVezContainer: {
-    marginTop: 86,
-    marginLeft: 32,
-    marginRight: 32,
-    marginBottom: 96,
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 3,
-    borderColor: colors.primario,
-    backgroundColor: colors.fondo,
-    flex: 1,
-    alignItems: "center",
-  },
-  botonCerrarModalUnaVez: {
-    backgroundColor: colors.primario,
-    alignSelf: "center",
-    padding: 6,
-    paddingTop: 2,
-    paddingBottom: 2,
-    position: "absolute",
-    top: 8,
-    right: 8,
-    borderRadius: 10,
-  },
-  textBotonModalUnaVez: {
-    color: colors.blanco,
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: "bold",
   },
+
+  alarmasDeUnaVezPuntos: {
+    color: colors.primario,
+    fontSize: 36,
+    fontWeight: "bold",
+    marginHorizontal: 4,
+  },
+
+  alarmasDeUnaVezMinutos: {
+    color: colors.primario,
+    fontSize: 36,
+    fontWeight: "bold",
+  },
+
+  alarmasDeUnaVezMensajeContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+
+  alarmasDeUnaVezMensajeTexto: {
+    color: colors.secundario,
+    fontSize: 15,
+    textAlign: "center",
+    lineHeight: 20,
+    fontStyle: "italic",
+  },
+
+  alarmasDeUnaVezContenedorBotones: {
+    flexDirection: "row",
+    height: 56,
+    borderTopWidth: 1.5,
+    borderColor: colors.primario,
+  },
+
+  alarmasDeUnaVezBorrar: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+
+    backgroundColor: colors.rojoAlphaColor50,
+
+    borderRightWidth: 1.5,
+    borderColor: colors.primario,
+  },
+
+  alarmasDeUnaVezEditar: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+
+    backgroundColor: colors.primarioAlphaColor50,
+  },
+
+  alarmasDeUnaVezBorrarText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  // 🔵 MODAL
+  modalUnaVezContainer: {
+    marginHorizontal: 24,
+    marginVertical: 80,
+    padding: 24,
+    borderRadius: 28,
+    backgroundColor: colors.blanco,
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+
   modalTitleUnaVez: {
     color: colors.primario,
     fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 12,
   },
+
+  botonCerrarModalUnaVez: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    backgroundColor: colors.rojo,
+    borderRadius: 18,
+    width: 36,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  textBotonModalUnaVez: {
+    color: colors.blanco,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
   inputModalContainer: {
     flexDirection: "row",
-    padding: 16,
+    alignItems: "center",
+    marginVertical: 16,
   },
+
   inputsModal: {
-    fontSize: 36,
-    borderWidth: 1,
-    borderColor: colors.primario,
+    width: 64,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: colors.fondo,
     color: colors.primario,
+    fontSize: 32,
+    fontWeight: "bold",
+    textAlign: "center",
   },
+
   inputsModalPuntos: {
+    fontSize: 32,
+    fontWeight: "bold",
     color: colors.primario,
-    fontSize: 36,
-    margin: 16,
+    marginHorizontal: 10,
   },
+
+  labelModal: {
+    color: colors.primario,
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 6,
+    marginLeft: 4,
+  },
+
+  textinputModalContainer: {
+    width: "100%",
+    marginBottom: 16,
+  },
+
+  textinputModal: {
+    width: "100%",
+    minHeight: 80,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1.5,
+    borderColor: colors.primario,
+    borderRadius: 14,
+    backgroundColor: colors.blanco,
+    color: colors.secundario,
+    fontSize: 15,
+    lineHeight: 20,
+    textAlignVertical: "top",
+  },
+
   botonGuardar: {
     backgroundColor: colors.primario,
-    maxWidth: 250,
-    borderRadius: 16,
-    marginBottom: 16,
-    padding: 8,
-    margin: 16,
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    marginTop: 12,
   },
+
   botonGuardarText: {
-    alignSelf: "center",
-    margin: "auto",
     color: colors.blanco,
-    fontSize: 20,
-    fontWeight: 800,
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

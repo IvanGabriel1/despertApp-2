@@ -1,4 +1,4 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
 import { colors } from "../Global/colors";
 import ModalAlarma from "./ModalAlarma";
@@ -11,7 +11,8 @@ const Home = () => {
     mes: "",
     anio: "",
   });
-  const [proximasAlarmas, setProximasAlarmas] = useState([]);
+
+  const [proximasNotificaciones, setProximasNotificaciones] = useState([]);
 
   const {
     isOpenModal,
@@ -22,7 +23,7 @@ const Home = () => {
 
   useEffect(() => {
     const proximas = obtenerProximasAlarmas(alarmasProgramadas);
-    setProximasAlarmas(proximas);
+    setProximasNotificaciones(proximas);
   }, [alarmasProgramadas]);
 
   useEffect(() => {
@@ -49,33 +50,39 @@ const Home = () => {
   };
 
   return (
-    <View style={styles.homeContainer}>
-      <Text style={styles.homeFecha}>
-        Hoy es: {relojAhora.dia} / {relojAhora.mes} / {relojAhora.anio}
+    <View style={styles.container}>
+      <Text style={styles.fecha}>
+        Hoy es {relojAhora.dia}/{relojAhora.mes}/{relojAhora.anio}
       </Text>
-      <Text style={styles.homeHora}>{relojAhora.hora}</Text>
-      <View style={styles.proximasAlarmasContainer}>
-        <Text style={styles.proximasAlarmasTitle}>Proximas Alarmas:</Text>
-        {proximasAlarmas.length === 0 ? (
-          <Text>No hay alarmas programadas</Text>
+
+      <Text style={styles.horaActual}>{relojAhora.hora}</Text>
+
+      <View style={styles.notificacionesContainer}>
+        <Text style={styles.notificacionesTitulo}>Próximas notificaciones</Text>
+
+        {proximasNotificaciones.length === 0 ? (
+          <Text style={styles.notificacionesVacias}>
+            No hay notificaciones programadas
+          </Text>
         ) : (
-          proximasAlarmas.map((a) => (
-            <Text key={a.id} style={styles.proximasAlarmasText}>
-              {a.proximaFecha.toLocaleString("es-AR", {
-                weekday: "long",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-              })}
-              {"\n"}
-              mensaje: {a.mensaje}
-            </Text>
+          proximasNotificaciones.map((n) => (
+            <View key={n.id} style={styles.notificacionItem}>
+              <Text style={styles.notificacionFecha}>
+                {n.proximaFecha.toLocaleString("es-AR", {
+                  weekday: "long",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })}
+              </Text>
+              <Text style={styles.notificacionMensaje}>{n.mensaje}</Text>
+            </View>
           ))
         )}
       </View>
 
-      <Pressable onPress={handleOpenModal} style={styles.boton}>
-        <Text style={styles.textBoton}>+</Text>
+      <Pressable onPress={handleOpenModal} style={styles.botonAgregar}>
+        <Text style={styles.botonAgregarTexto}>+</Text>
       </Pressable>
 
       <ModalAlarma />
@@ -86,46 +93,84 @@ const Home = () => {
 export default Home;
 
 const styles = StyleSheet.create({
-  homeContainer: {
+  container: {
     flex: 1,
+    backgroundColor: colors.fondo,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    paddingTop: 40,
   },
-  homeFecha: {
-    marginBottom: 16,
-    color: colors.primario,
-    fontSize: 24,
+
+  fecha: {
+    color: colors.textoSecundario,
+    fontSize: 18,
+    marginBottom: 8,
   },
-  homeHora: {
+
+  horaActual: {
     color: colors.primario,
     fontSize: 72,
+    fontWeight: "700",
+    marginBottom: 24,
   },
-  proximasAlarmasContainer: {
-    marginTop: 16,
+
+  notificacionesContainer: {
+    width: "90%",
+    backgroundColor: colors.blanco,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.borde,
   },
-  proximasAlarmasTitle: {
+
+  notificacionesTitulo: {
+    fontSize: 20,
     color: colors.primario,
-    fontSize: 24,
+    fontWeight: "600",
+    marginBottom: 12,
+    textAlign: "center",
   },
-  boton: {
+
+  notificacionesVacias: {
+    color: colors.textoSecundario,
+    textAlign: "center",
+    marginTop: 12,
+  },
+
+  notificacionItem: {
+    borderBottomWidth: 1,
+    borderColor: colors.borde,
+    paddingVertical: 10,
+  },
+
+  notificacionFecha: {
+    color: colors.textoPrimario,
+    fontWeight: "600",
+    textTransform: "capitalize",
+  },
+
+  notificacionMensaje: {
+    color: colors.textoSecundario,
+    marginTop: 4,
+  },
+
+  botonAgregar: {
     backgroundColor: colors.primario,
-    paddingVertical: 20,
-    paddingHorizontal: 40,
-    borderRadius: 100,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: "center",
     alignItems: "center",
     position: "absolute",
-    bottom: 50,
-    alignSelf: "center",
+    bottom: 40,
+    right: 24,
+    elevation: 4,
   },
-  textBoton: {
-    color: "white",
-    fontSize: 48,
+
+  botonAgregarTexto: {
+    color: colors.blanco,
+    fontSize: 40,
     fontWeight: "bold",
-  },
-  proximasAlarmasText: {
-    color: colors.primario,
-    alignSelf: "center",
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: -2,
   },
 });

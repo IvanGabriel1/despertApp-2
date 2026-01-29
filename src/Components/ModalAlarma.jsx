@@ -6,11 +6,9 @@ import {
   TextInput,
   Pressable,
 } from "react-native";
-import React, { useContext, useState, useEffect, useRef } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { colors } from "../Global/colors";
 import { AlarmaContext } from "../Context/AlarmaContext";
-import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
 
 const ModalAlarma = () => {
   const [hora, setHora] = useState("");
