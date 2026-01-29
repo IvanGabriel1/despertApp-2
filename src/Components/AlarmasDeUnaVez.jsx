@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useContext, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { colors } from "../Global/colors";
 import { AlarmaContext } from "../Context/AlarmaContext";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,7 +28,7 @@ const AlarmasDeUnaVez = () => {
   } = useContext(AlarmaContext);
   const minutosRef = useRef(null);
 
-  const alarmasProgramadasDeUnaVez = alarmasProgramadas
+  const notificacionesProgramadasDeUnaVez = alarmasProgramadas
     .filter((item) => item.unavez === true)
     .sort((a, b) => {
       const horaA = parseInt(a.hora, 10);
@@ -66,7 +66,6 @@ const AlarmasDeUnaVez = () => {
   const guardarCambios = async () => {
     if (!alarmaSeleccionada) return;
 
-    // usar variables locales para manipular valores
     let horaFinal =
       nuevaHora && nuevaHora.trim() !== ""
         ? nuevaHora
@@ -86,7 +85,6 @@ const AlarmasDeUnaVez = () => {
     let mensajeFinal =
       nuevaMensaje !== null ? nuevaMensaje : alarmaSeleccionada.mensaje;
 
-    // formatear a dos dígitos
     if (horaFinal?.length === 1) horaFinal = horaFinal.padStart(2, "0");
     if (minutosFinal?.length === 1)
       minutosFinal = minutosFinal.padStart(2, "0");
@@ -131,40 +129,48 @@ const AlarmasDeUnaVez = () => {
   };
 
   return (
-    <SafeAreaView style={styles.alarmasDeUnaVezContainer}>
-      <Text style={styles.alarmasDeUnaVezTitle}>Alarmas de una vez:</Text>
-      <View style={styles.listaAlarmasDeUnaVezContainer}>
+    <SafeAreaView style={styles.notificacionesDeUnaVezContainer}>
+      <Text style={styles.notificacionesDeUnaVezTitle}>
+        Notificaciones de una vez:
+      </Text>
+      <View style={styles.listaNotificacionesDeUnaVezContainer}>
         <FlatList
-          data={alarmasProgramadasDeUnaVez}
+          data={notificacionesProgramadasDeUnaVez}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.listaAlarmasDeUnaVezItem}>
-              <View style={styles.alarmasDeUnaVezHyMItem}>
-                <Text style={styles.alarmasDeUnaVezHora}>{item.hora}</Text>
-                <Text style={styles.alarmasDeUnaVezPuntos}>:</Text>
-                <Text style={styles.alarmasDeUnaVezMinutos}>
+            <View style={styles.listaNotificacionesDeUnaVezItem}>
+              <View style={styles.notificacionesDeUnaVezHyMItem}>
+                <Text style={styles.notificacionesDeUnaVezHora}>
+                  {item.hora}
+                </Text>
+                <Text style={styles.notificacionesDeUnaVezPuntos}>:</Text>
+                <Text style={styles.notificacionesDeUnaVezMinutos}>
                   {item.minutos}
                 </Text>
               </View>
 
-              <View style={styles.alarmasDeUnaVezMensajeContainer}>
-                <Text style={styles.alarmasDeUnaVezMensajeTexto}>
+              <View style={styles.notificacionesDeUnaVezMensajeContainer}>
+                <Text style={styles.notificacionesDeUnaVezMensajeTexto}>
                   {item.mensaje}
                 </Text>
               </View>
 
-              <View style={styles.alarmasDeUnaVezContenedorBotones}>
+              <View style={styles.notificacionesDeUnaVezContenedorBotones}>
                 <Pressable
-                  style={styles.alarmasDeUnaVezBorrar}
+                  style={styles.notificacionesDeUnaVezBorrar}
                   onPress={() => borrarItemAlarma(item)}
                 >
-                  <Text style={styles.alarmasDeUnaVezBorrarText}>Borrar</Text>
+                  <Text style={styles.notificacionesDeUnaVezBorrarText}>
+                    Borrar
+                  </Text>
                 </Pressable>
                 <Pressable
-                  style={styles.alarmasDeUnaVezEditar}
+                  style={styles.notificacionesDeUnaVezEditar}
                   onPress={() => btnEditar(item)}
                 >
-                  <Text style={styles.alarmasDeUnaVezBorrarText}>Editar</Text>
+                  <Text style={styles.notificacionesDeUnaVezBorrarText}>
+                    Editar
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -306,27 +312,30 @@ const AlarmasDeUnaVez = () => {
 export default AlarmasDeUnaVez;
 
 const styles = StyleSheet.create({
-  alarmasDeUnaVezContainer: {
+  notificacionesDeUnaVezContainer: {
     flex: 1,
     backgroundColor: colors.fondo,
+
     alignItems: "center",
     paddingTop: 24,
   },
 
-  alarmasDeUnaVezTitle: {
+  notificacionesDeUnaVezTitle: {
     color: colors.primario,
     fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 16,
   },
 
-  listaAlarmasDeUnaVezContainer: {
-    flex: 1,
-    width: "100%",
-    alignItems: "center",
+  listaNotificacionesDeUnaVezContainer: {
+    borderRadius: 20,
+    backgroundColor: colors.fondo,
+    width: 350,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
 
-  listaAlarmasDeUnaVezItem: {
+  listaNotificacionesDeUnaVezItem: {
     backgroundColor: colors.blanco,
     borderRadius: 22,
     width: 350,
@@ -343,7 +352,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
 
-  alarmasDeUnaVezHyMItem: {
+  notificacionesDeUnaVezHyMItem: {
     flexDirection: "row",
     height: 64,
     alignItems: "center",
@@ -352,31 +361,31 @@ const styles = StyleSheet.create({
     borderColor: colors.primarioAlphaColor50,
   },
 
-  alarmasDeUnaVezHora: {
+  notificacionesDeUnaVezHora: {
     color: colors.primario,
     fontSize: 36,
     fontWeight: "bold",
   },
 
-  alarmasDeUnaVezPuntos: {
+  notificacionesDeUnaVezPuntos: {
     color: colors.primario,
     fontSize: 36,
     fontWeight: "bold",
     marginHorizontal: 4,
   },
 
-  alarmasDeUnaVezMinutos: {
+  notificacionesDeUnaVezMinutos: {
     color: colors.primario,
     fontSize: 36,
     fontWeight: "bold",
   },
 
-  alarmasDeUnaVezMensajeContainer: {
+  notificacionesDeUnaVezMensajeContainer: {
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
 
-  alarmasDeUnaVezMensajeTexto: {
+  notificacionesDeUnaVezMensajeTexto: {
     color: colors.secundario,
     fontSize: 15,
     textAlign: "center",
@@ -384,14 +393,14 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
 
-  alarmasDeUnaVezContenedorBotones: {
+  notificacionesDeUnaVezContenedorBotones: {
     flexDirection: "row",
     height: 56,
     borderTopWidth: 1.5,
     borderColor: colors.primario,
   },
 
-  alarmasDeUnaVezBorrar: {
+  notificacionesDeUnaVezBorrar: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -402,7 +411,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primario,
   },
 
-  alarmasDeUnaVezEditar: {
+  notificacionesDeUnaVezEditar: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -410,7 +419,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primarioAlphaColor50,
   },
 
-  alarmasDeUnaVezBorrarText: {
+  notificacionesDeUnaVezBorrarText: {
     fontSize: 16,
     fontWeight: "bold",
   },

@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import React, { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
@@ -193,7 +193,7 @@ export const AlarmaProvider = ({ children }) => {
     futuras.sort((a, b) => a.proximaFecha - b.proximaFecha);
 
     // devolver solo 2:
-    return futuras.slice(0, 2);
+    return futuras.slice(0, 15);
   };
 
   const programarNotificacion = async (alarma) => {

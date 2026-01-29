@@ -37,10 +37,7 @@ const ModalAlarma = () => {
   const {
     isOpenModal,
     setIsOpenModal,
-    cerrarModal,
     creandoAlarma,
-    setCreandoAlarma,
-    setAlarmasProgramadas,
     alarmasProgramadas,
     agregarAlarma,
   } = useContext(AlarmaContext);
@@ -149,6 +146,9 @@ const ModalAlarma = () => {
                   return;
                 }
 
+                // Solo números
+                if (!/^\d+$/.test(text)) return;
+
                 const num = parseInt(text, 10);
 
                 if (isNaN(num)) return;
@@ -180,6 +180,9 @@ const ModalAlarma = () => {
                 }
 
                 const num = parseInt(text, 10);
+
+                // Solo números
+                if (!/^\d+$/.test(text)) return;
 
                 if (isNaN(num)) return;
 

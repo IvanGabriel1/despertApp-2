@@ -7,11 +7,10 @@ import {
   TextInput,
   View,
 } from "react-native";
-import React, { useContext, useRef, useState, useEffect } from "react";
+import { useContext, useRef, useState } from "react";
 import { colors } from "../Global/colors";
 import { AlarmaContext } from "../Context/AlarmaContext";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AlarmasProgramadas = () => {
   const [isOpenModalProgramadas, setIsOpenModalProgramadas] = useState(false);
@@ -35,9 +34,6 @@ const AlarmasProgramadas = () => {
     alarmasProgramadas,
     borrarItemAlarma,
     setAlarmasProgramadas,
-    programarNotificacion,
-    cancelarNotificacion,
-    cerrarModal,
     programarNotificacionPorDias,
     cancelarNotificacionesPorDias,
   } = useContext(AlarmaContext);
@@ -189,8 +185,8 @@ const AlarmasProgramadas = () => {
           data={alarmasProgramadasDias}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={styles.listaAlarmasDeUnaVezItem}>
-              <View style={styles.alarmasDeUnaVezHyMItem}>
+            <View style={styles.listaNotificacionesDeUnaVezItem}>
+              <View style={styles.notificacionesDeUnaVezHyMItem}>
                 <Text style={styles.notificacionesDeUnaVezHora}>
                   {item.hora}
                 </Text>
@@ -233,7 +229,7 @@ const AlarmasProgramadas = () => {
                 </Text>
               </View>
 
-              <View style={styles.alarmasDeUnaVezContenedorBotones}>
+              <View style={styles.notificacionesDeUnaVezContenedorBotones}>
                 <Pressable
                   style={styles.notificacionesProgramadasBorrar}
                   onPress={async () => {
@@ -266,7 +262,9 @@ const AlarmasProgramadas = () => {
           transparent={true}
         >
           <View style={styles.modalProgramadasContainer}>
-            <Text style={styles.modalTitleProgramadas}>Modificar Alarma:</Text>
+            <Text style={styles.modalTitleProgramadas}>
+              Modificar Notificacion:
+            </Text>
 
             {alarmaSeleccionada && (
               <View style={styles.inputModalContainer}>
@@ -433,19 +431,16 @@ const styles = StyleSheet.create({
     color: colors.primario,
     fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 16,
   },
   listaNotificacionesProgramadasContainer: {
     borderRadius: 20,
-    backgroundColor: colors.blanco,
+    backgroundColor: colors.fondo,
     width: 350,
-    marginBottom: 16,
-    paddingVertical: 8,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 8,
   },
-  listaAlarmasDeUnaVezItem: {
+  listaNotificacionesDeUnaVezItem: {
     backgroundColor: colors.blanco,
     borderRadius: 22,
     width: 350,
@@ -461,7 +456,7 @@ const styles = StyleSheet.create({
 
     overflow: "hidden",
   },
-  alarmasDeUnaVezHyMItem: {
+  notificacionesDeUnaVezHyMItem: {
     flexDirection: "row",
     borderColor: colors.primario,
     height: 56,
@@ -483,7 +478,7 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: "bold",
   },
-  alarmasDeUnaVezContenedorBotones: {
+  notificacionesDeUnaVezContenedorBotones: {
     flexDirection: "row",
     height: 56,
     borderTopWidth: 1.5,

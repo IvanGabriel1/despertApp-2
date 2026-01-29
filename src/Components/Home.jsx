@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { colors } from "../Global/colors";
 import ModalAlarma from "./ModalAlarma";
 import { AlarmaContext } from "../Context/AlarmaContext";
