@@ -1,17 +1,17 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
 import TabNavigator from "./src/Navigation/TabNavigator";
 import { NavigationContainer } from "@react-navigation/native";
-import { AlarmaProvider } from "./src/Context/AlarmaContext";
+import { NotificacionProvider } from "./src/Context/NotificacionContext";
 
 export default function App() {
   return (
-    <AlarmaProvider>
+    <NotificacionProvider>
       <NavigationContainer>
         <TabNavigator />
       </NavigationContainer>
       <StatusBar style="auto" />
-    </AlarmaProvider>
+    </NotificacionProvider>
   );
 }
 

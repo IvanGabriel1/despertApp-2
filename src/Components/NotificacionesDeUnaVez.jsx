@@ -9,26 +9,28 @@ import {
 } from "react-native";
 import { useContext, useRef, useState } from "react";
 import { colors } from "../Global/colors";
-import { AlarmaContext } from "../Context/AlarmaContext";
+import { NotificacionContext } from "../Context/NotificacionContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ToastAndroid } from "react-native";
 
-const AlarmasDeUnaVez = () => {
+const NotificacionsDeUnaVez = () => {
   const [isOpenModalUnaVez, setIsOpenModalUnaVez] = useState(false);
-  const [alarmaSeleccionada, setAlarmaSeleccionada] = useState(null);
+  const [notificacionSeleccionada, setNotificacionSeleccionada] =
+    useState(null);
   const [nuevaHora, setNuevaHora] = useState(null);
   const [nuevaMinutos, setNuevaMinutos] = useState(null);
   const [nuevaMensaje, setNuevaMensaje] = useState(null);
 
   const {
-    alarmasProgramadas,
-    borrarItemAlarma,
-    setAlarmasProgramadas,
+    notificacionesProgramadas,
+    borrarItemNotificacion,
+    setNotificacionsProgramadas,
     programarNotificacion,
     cancelarNotificacion,
-  } = useContext(AlarmaContext);
+  } = useContext(NotificacionContext);
   const minutosRef = useRef(null);
 
-  const notificacionesProgramadasDeUnaVez = alarmasProgramadas
+  const notificacionesProgramadasDeUnaVez = notificacionesProgramadas
     .filter((item) => item.unavez === true)
     .sort((a, b) => {
       const horaA = parseInt(a.hora, 10);
@@ -40,18 +42,10 @@ const AlarmasDeUnaVez = () => {
       const minutosB = parseInt(b.minutos, 10);
 
       return minutosA - minutosB;
-    })
-    .filter((item, index, self) => {
-      return (
-        index ===
-        self.findIndex(
-          (t) => t.hora === item.hora && t.minutos === item.minutos,
-        )
-      );
     });
 
   const btnEditar = (item) => {
-    setAlarmaSeleccionada(item);
+    setNotificacionSeleccionada(item);
     setIsOpenModalUnaVez(true);
   };
 
@@ -59,21 +53,21 @@ const AlarmasDeUnaVez = () => {
     setIsOpenModalUnaVez(false);
     setNuevaHora(null);
     setNuevaMinutos(null);
-    setAlarmaSeleccionada(null);
+    setNotificacionSeleccionada(null);
     setNuevaMensaje(null);
   };
 
   const guardarCambios = async () => {
-    if (!alarmaSeleccionada) return;
+    if (!notificacionSeleccionada) return;
 
     let horaFinal =
       nuevaHora && nuevaHora.trim() !== ""
         ? nuevaHora
-        : alarmaSeleccionada.hora;
+        : notificacionSeleccionada.hora;
     let minutosFinal =
       nuevaMinutos && nuevaMinutos.trim() !== ""
         ? nuevaMinutos
-        : alarmaSeleccionada.minutos;
+        : notificacionSeleccionada.minutos;
 
     const horaValida = horaFinal !== "" && minutosFinal !== "";
 
@@ -83,14 +77,19 @@ const AlarmasDeUnaVez = () => {
     }
 
     let mensajeFinal =
-      nuevaMensaje !== null ? nuevaMensaje : alarmaSeleccionada.mensaje;
+      nuevaMensaje !== null ? nuevaMensaje : notificacionSeleccionada.mensaje;
+
+    if (mensajeFinal.length > 140) {
+      alert("El mensaje tiene que tener menos de 140 caracterés");
+      return;
+    }
 
     if (horaFinal?.length === 1) horaFinal = horaFinal.padStart(2, "0");
     if (minutosFinal?.length === 1)
       minutosFinal = minutosFinal.padStart(2, "0");
 
-    if (alarmaSeleccionada.notificationId) {
-      await cancelarNotificacion(alarmaSeleccionada.notificationId);
+    if (notificacionSeleccionada.notificationId) {
+      await cancelarNotificacion(notificacionSeleccionada.notificationId);
     }
 
     const nuevaFechaDisparo = new Date();
@@ -103,7 +102,7 @@ const AlarmasDeUnaVez = () => {
     }
 
     const notificationId = await programarNotificacion({
-      ...alarmaSeleccionada,
+      ...notificacionSeleccionada,
       hora: horaFinal,
       minutos: minutosFinal,
       mensaje: mensajeFinal,
@@ -111,9 +110,9 @@ const AlarmasDeUnaVez = () => {
       fecha: nuevaFechaDisparo,
     });
 
-    setAlarmasProgramadas((prev) => {
+    setNotificacionsProgramadas((prev) => {
       return prev.map((item) =>
-        item.id === alarmaSeleccionada.id
+        item.id === notificacionSeleccionada.id
           ? {
               ...item,
               hora: horaFinal,
@@ -126,6 +125,11 @@ const AlarmasDeUnaVez = () => {
     });
 
     btnCerrarModalUnaVez();
+
+    ToastAndroid.show(
+      `Notificación actualizada a ${horaFinal}:${minutosFinal}`,
+      ToastAndroid.SHORT,
+    );
   };
 
   return (
@@ -158,7 +162,7 @@ const AlarmasDeUnaVez = () => {
               <View style={styles.notificacionesDeUnaVezContenedorBotones}>
                 <Pressable
                   style={styles.notificacionesDeUnaVezBorrar}
-                  onPress={() => borrarItemAlarma(item)}
+                  onPress={() => borrarItemNotificacion(item)}
                 >
                   <Text style={styles.notificacionesDeUnaVezBorrarText}>
                     Borrar
@@ -183,14 +187,14 @@ const AlarmasDeUnaVez = () => {
           transparent={true}
         >
           <View style={styles.modalUnaVezContainer}>
-            <Text style={styles.modalTitleUnaVez}>Modificar Alarma:</Text>
+            <Text style={styles.modalTitleUnaVez}>Modificar Notificacion:</Text>
 
-            {alarmaSeleccionada && (
+            {notificacionSeleccionada && (
               <View style={styles.inputModalContainer}>
                 <TextInput
                   value={
                     nuevaHora === null
-                      ? alarmaSeleccionada.hora // al abrir el modal, mostrar hora actual
+                      ? notificacionSeleccionada.hora // al abrir el modal, mostrar hora actual
                       : nuevaHora // si el usuario escribe, usar eso
                   }
                   onChangeText={(text) => {
@@ -237,7 +241,7 @@ const AlarmasDeUnaVez = () => {
                   ref={minutosRef}
                   value={
                     nuevaMinutos === null
-                      ? alarmaSeleccionada.minutos
+                      ? notificacionSeleccionada.minutos
                       : nuevaMinutos
                   }
                   onChangeText={(text) => {
@@ -275,13 +279,15 @@ const AlarmasDeUnaVez = () => {
 
             <Text style={styles.labelModal}>Mensaje</Text>
 
-            {alarmaSeleccionada && (
+            {notificacionSeleccionada && (
               <View style={styles.textinputModalContainer}>
                 <TextInput
+                  multiline
+                  maxLength={140}
                   style={styles.textinputModal}
                   value={
                     nuevaMensaje === null
-                      ? alarmaSeleccionada.mensaje
+                      ? notificacionSeleccionada.mensaje
                       : nuevaMensaje
                   }
                   onChangeText={setNuevaMensaje}
@@ -309,7 +315,7 @@ const AlarmasDeUnaVez = () => {
   );
 };
 
-export default AlarmasDeUnaVez;
+export default NotificacionsDeUnaVez;
 
 const styles = StyleSheet.create({
   notificacionesDeUnaVezContainer: {

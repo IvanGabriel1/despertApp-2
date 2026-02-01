@@ -8,9 +8,10 @@ import {
 } from "react-native";
 import { useContext, useState, useEffect, useRef } from "react";
 import { colors } from "../Global/colors";
-import { AlarmaContext } from "../Context/AlarmaContext";
+import { NotificacionContext } from "../Context/NotificacionContext";
+import { ToastAndroid } from "react-native";
 
-const ModalAlarma = () => {
+const ModalNotificacion = () => {
   const [hora, setHora] = useState("");
   const [minutos, setMinutos] = useState("");
   const [mensaje, setMensaje] = useState("");
@@ -26,23 +27,15 @@ const ModalAlarma = () => {
 
   const minutosRef = useRef(null);
 
-  useEffect(() => {
-    console.log("Nuevo estado de creandoAlarma:", creandoAlarma);
-  }, [creandoAlarma]);
-
-  useEffect(() => {
-    console.log("Alarmas programadas:", alarmasProgramadas);
-  }, [alarmasProgramadas]);
-
   const {
     isOpenModal,
     setIsOpenModal,
-    creandoAlarma,
-    alarmasProgramadas,
-    agregarAlarma,
-  } = useContext(AlarmaContext);
+    creandoNotificacion,
+    notificacionesProgramadas,
+    agregarNotificacion,
+  } = useContext(NotificacionContext);
 
-  const guardarAlarma = async () => {
+  const guardarNotificacion = async () => {
     if (hora === "" || minutos === "") {
       alert("Tenes que completar la hora y minutos");
       return;
@@ -72,8 +65,8 @@ const ModalAlarma = () => {
       return;
     }
 
-    if (mensaje.length > 50) {
-      alert("El mensaje tiene que tener menos de 50 caracterés");
+    if (mensaje.length > 140) {
+      alert("El mensaje tiene que tener menos de 140 caracterés");
       return;
     }
 
@@ -86,8 +79,8 @@ const ModalAlarma = () => {
       setMensaje("Sin mensaje");
     }
 
-    const nuevaAlarma = {
-      id: `alarma-${Date.now()}`,
+    const nuevaNotificacion = {
+      id: `notificacion-${Date.now()}`,
       hora: h,
       minutos: m,
       dias: diasArray,
@@ -96,11 +89,15 @@ const ModalAlarma = () => {
     };
 
     setIsOpenModal(!isOpenModal);
-    console.log("nuevaAlarma:", nuevaAlarma);
-    await agregarAlarma(nuevaAlarma);
+
+    await agregarNotificacion(nuevaNotificacion);
 
     resetInputs();
-    alert(`Mensaje programado a las ${h}:${m} : ${mensaje}`);
+
+    ToastAndroid.show(
+      `Notificación creada a ${h}:${m} - ${mensaje}`,
+      ToastAndroid.SHORT,
+    );
   };
 
   const resetInputs = () => {
@@ -136,7 +133,7 @@ const ModalAlarma = () => {
     <Modal visible={isOpenModal} animationType="slide" transparent={false}>
       <View style={styles.modalBackground}>
         <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Creando Alarma:</Text>
+          <Text style={styles.modalTitle}>Creando Notificacion:</Text>
           <View style={styles.inputModalContainer}>
             <TextInput
               value={hora}
@@ -261,6 +258,8 @@ const ModalAlarma = () => {
           <Text style={styles.modalTitle2}>Mensaje:</Text>
           <View style={styles.textInputMensajeContainer}>
             <TextInput
+              multiline
+              maxLength={140}
               style={styles.mensajeTextInput}
               placeholder="Escribe un mensaje"
               value={mensaje}
@@ -271,7 +270,7 @@ const ModalAlarma = () => {
           <Pressable onPress={handleOpenModal} style={styles.botonCerrarModal}>
             <Text style={styles.textBotonModal}>X</Text>
           </Pressable>
-          <Pressable onPress={guardarAlarma} style={styles.botonGuardar}>
+          <Pressable onPress={guardarNotificacion} style={styles.botonGuardar}>
             <Text style={styles.botonGuardarText}>Guardar</Text>
           </Pressable>
         </View>
@@ -280,7 +279,7 @@ const ModalAlarma = () => {
   );
 };
 
-export default ModalAlarma;
+export default ModalNotificacion;
 
 const styles = StyleSheet.create({
   modalBackground: {

@@ -1,8 +1,8 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, FlatList } from "react-native";
 import { useContext, useEffect, useState } from "react";
 import { colors } from "../Global/colors";
-import ModalAlarma from "./ModalAlarma";
-import { AlarmaContext } from "../Context/AlarmaContext";
+import ModalNotificacion from "./ModalNotificacion";
+import { NotificacionContext } from "../Context/NotificacionContext";
 
 const Home = () => {
   const [relojAhora, setRelojAhora] = useState({
@@ -17,14 +17,14 @@ const Home = () => {
   const {
     isOpenModal,
     setIsOpenModal,
-    alarmasProgramadas,
-    obtenerProximasAlarmas,
-  } = useContext(AlarmaContext);
+    notificacionesProgramadas,
+    obtenerProximasNotificaciones,
+  } = useContext(NotificacionContext);
 
   useEffect(() => {
-    const proximas = obtenerProximasAlarmas(alarmasProgramadas);
+    const proximas = obtenerProximasNotificaciones(notificacionesProgramadas);
     setProximasNotificaciones(proximas);
-  }, [alarmasProgramadas]);
+  }, [notificacionesProgramadas]);
 
   useEffect(() => {
     const intervalo = setInterval(() => {
@@ -65,19 +65,24 @@ const Home = () => {
             No hay notificaciones programadas
           </Text>
         ) : (
-          proximasNotificaciones.map((n) => (
-            <View key={n.id} style={styles.notificacionItem}>
-              <Text style={styles.notificacionFecha}>
-                {n.proximaFecha.toLocaleString("es-AR", {
-                  weekday: "long",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                })}
-              </Text>
-              <Text style={styles.notificacionMensaje}>{n.mensaje}</Text>
-            </View>
-          ))
+          <FlatList
+            data={proximasNotificaciones}
+            keyExtractor={(item) => item.id.toString()}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={styles.notificacionItem}>
+                <Text style={styles.notificacionFecha}>
+                  {item.proximaFecha.toLocaleString("es-AR", {
+                    weekday: "long",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}
+                </Text>
+                <Text style={styles.notificacionMensaje}>{item.mensaje}</Text>
+              </View>
+            )}
+          />
         )}
       </View>
 
@@ -85,7 +90,7 @@ const Home = () => {
         <Text style={styles.botonAgregarTexto}>+</Text>
       </Pressable>
 
-      <ModalAlarma />
+      <ModalNotificacion />
     </View>
   );
 };
@@ -102,7 +107,7 @@ const styles = StyleSheet.create({
   },
 
   fecha: {
-    color: colors.textoSecundario,
+    color: colors.secundario,
     fontSize: 18,
     marginBottom: 8,
   },
@@ -119,8 +124,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.blanco,
     borderRadius: 16,
     padding: 16,
+
     borderWidth: 1,
-    borderColor: colors.borde,
+    borderColor: colors.secundario,
   },
 
   notificacionesTitulo: {
@@ -132,25 +138,25 @@ const styles = StyleSheet.create({
   },
 
   notificacionesVacias: {
-    color: colors.textoSecundario,
+    color: colors.secundario,
     textAlign: "center",
     marginTop: 12,
   },
 
   notificacionItem: {
     borderBottomWidth: 1,
-    borderColor: colors.borde,
+    borderColor: colors.secundario,
     paddingVertical: 10,
   },
 
   notificacionFecha: {
-    color: colors.textoPrimario,
+    color: colors.primario,
     fontWeight: "600",
     textTransform: "capitalize",
   },
 
   notificacionMensaje: {
-    color: colors.textoSecundario,
+    color: colors.secundario,
     marginTop: 4,
   },
 

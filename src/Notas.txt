@@ -53,3 +53,23 @@ Abrí despertApp
 
 
 👉 En Android, Expo Notifications EXIGE que exista un notification channel
+
+---------------------------------------------------------------------------------
+
+🧠 Regla de oro (guardátela)
+
+🔔 Si agregás, sacás o cambiás algo que toca nativo →
+👉 Desinstalar app + prebuild + npx expo run:android
+
+
+PASO 1 — Crear local.properties
+
+En tu proyecto:
+
+📁 C:\Users\User\Desktop\Notis\android\
+
+Creá un archivo nuevo llamado: local.properties
+
+En local.properties pegar solo esto: 
+
+sdk.dir=C:\\Users\\User\\AppData\\Local\\Android\\Sdk

@@ -1,8 +1,8 @@
 import { StyleSheet } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Home from "../Components/Home";
-import AlarmasProgramadas from "../Components/AlarmasProgramadas";
-import AlarmasDeUnaVez from "../Components/AlarmasDeUnaVez";
+import NotificacionesProgramadas from "../Components/NotificacionesProgramadas";
+import NotificacionesDeUnaVez from "../Components/NotificacionesDeUnaVez";
 import { FontAwesome } from "@expo/vector-icons";
 
 const Tab = createBottomTabNavigator();
@@ -13,44 +13,39 @@ const TabNavigator = () => {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: "#DBEAFE", // primarioClaro
+          borderTopWidth: 0,
+          elevation: 10,
+        },
+        tabBarActiveTintColor: "#2563EB", // primario
+        tabBarInactiveTintColor: "#1E293B",
       }}
     >
       <Tab.Screen
         name="home"
         component={Home}
         options={{
-          tabBarIcon: ({ focused }) => (
-            <FontAwesome
-              name="plus"
-              size={24}
-              color={focused ? `#666` : `#111`}
-            />
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome name="plus" size={size} color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="AlarmasProgramadas"
-        component={AlarmasProgramadas}
+        name="NotificacionsProgramadas"
+        component={NotificacionesProgramadas}
         options={{
-          tabBarIcon: ({ focused }) => (
-            <FontAwesome
-              name="calendar"
-              size={24}
-              color={focused ? `#666` : `#111`}
-            />
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome name="calendar" size={size} color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="AlarmasDeUnaVez"
-        component={AlarmasDeUnaVez}
+        name="NotificacionsDeUnaVez"
+        component={NotificacionesDeUnaVez}
         options={{
-          tabBarIcon: ({ focused }) => (
-            <FontAwesome
-              name="bell"
-              size={24}
-              color={focused ? `#666` : `#111`}
-            />
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome name="bell" size={size} color={color} />
           ),
         }}
       />

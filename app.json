@@ -1,12 +1,16 @@
 {
   "expo": {
     "name": "Notis",
-    "slug": "Notis",
+    "slug": "notis",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#2563EB"
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -25,7 +29,7 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
-      "package": "com.ivanbraun.despertApp"
+      "package": "com.ivanbraun.notis"
     },
     "web": {
       "favicon": "./assets/favicon.png"

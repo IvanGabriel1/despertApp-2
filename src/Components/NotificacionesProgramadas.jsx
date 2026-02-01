@@ -9,12 +9,14 @@ import {
 } from "react-native";
 import { useContext, useRef, useState } from "react";
 import { colors } from "../Global/colors";
-import { AlarmaContext } from "../Context/AlarmaContext";
+import { NotificacionContext } from "../Context/NotificacionContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ToastAndroid } from "react-native";
 
-const AlarmasProgramadas = () => {
+const NotificacionsProgramadas = () => {
   const [isOpenModalProgramadas, setIsOpenModalProgramadas] = useState(false);
-  const [alarmaSeleccionada, setAlarmaSeleccionada] = useState(null);
+  const [notificacionSeleccionada, setNotificacionSeleccionada] =
+    useState(null);
   const [nuevaHora, setNuevaHora] = useState(null);
   const [nuevaMinutos, setNuevaMinutos] = useState(null);
   const [nuevaMensaje, setNuevaMensaje] = useState(null);
@@ -31,21 +33,15 @@ const AlarmasProgramadas = () => {
   ];
 
   const {
-    alarmasProgramadas,
-    borrarItemAlarma,
-    setAlarmasProgramadas,
+    notificacionesProgramadas,
+    borrarItemNotificacion,
+    setNotificacionsProgramadas,
     programarNotificacionPorDias,
     cancelarNotificacionesPorDias,
-  } = useContext(AlarmaContext);
+  } = useContext(NotificacionContext);
   const minutosRef = useRef(null);
 
-  const diasIguales = (a, b) => {
-    if (!Array.isArray(a) || !Array.isArray(b)) return false;
-    if (a.length !== b.length) return false;
-    return a.every((dia) => b.includes(dia));
-  };
-
-  const alarmasProgramadasDias = alarmasProgramadas
+  const notificacionesProgramadasDias = notificacionesProgramadas
     .filter((item) => item.unavez === false)
     .sort((a, b) => {
       const horaA = parseInt(a.hora, 10);
@@ -57,21 +53,10 @@ const AlarmasProgramadas = () => {
       const minutosB = parseInt(b.minutos, 10);
 
       return minutosA - minutosB;
-    })
-    .filter((item, index, self) => {
-      return (
-        index ===
-        self.findIndex(
-          (t) =>
-            t.hora === item.hora &&
-            t.minutos === item.minutos &&
-            diasIguales(t.dias, item.dias),
-        )
-      );
     });
 
   const btnEditar = (item) => {
-    setAlarmaSeleccionada(item);
+    setNotificacionSeleccionada(item);
     setNuevaHora(null);
     setNuevaMinutos(null);
     setNuevaMensaje(null);
@@ -84,37 +69,36 @@ const AlarmasProgramadas = () => {
 
     setNuevaHora(null);
     setNuevaMinutos(null);
-    setAlarmaSeleccionada(null);
+    setNotificacionSeleccionada(null);
     setNuevaMensaje(null);
     setDiasSeleccionados([]);
   };
 
   const guardarCambios = async () => {
     try {
-      console.log("🧠 guardarCambios ejecutado", {
-        nuevaHora,
-        nuevaMinutos,
-        nuevaMensaje,
-        diasSeleccionados,
-      });
-      if (!alarmaSeleccionada) return;
+      if (!notificacionSeleccionada) return;
 
       let horaFinal =
         nuevaHora && nuevaHora.trim() !== ""
           ? nuevaHora
-          : alarmaSeleccionada.hora;
+          : notificacionSeleccionada.hora;
       let minutosFinal =
         nuevaMinutos && nuevaMinutos.trim() !== ""
           ? nuevaMinutos
-          : alarmaSeleccionada.minutos;
+          : notificacionSeleccionada.minutos;
 
       if (!horaFinal || !minutosFinal) {
-        alert("La alarma debe tener hora y minutos");
+        alert("La notificacion debe tener hora y minutos");
         return;
       }
 
       let mensajeFinal =
-        nuevaMensaje !== null ? nuevaMensaje : alarmaSeleccionada.mensaje;
+        nuevaMensaje !== null ? nuevaMensaje : notificacionSeleccionada.mensaje;
+
+      if (mensajeFinal.length > 140) {
+        alert("El mensaje tiene que tener menos de 140 caracterés");
+        return;
+      }
 
       // formatear a dos dígitos
       if (horaFinal?.length === 1) horaFinal = horaFinal.padStart(2, "0");
@@ -129,24 +113,22 @@ const AlarmasProgramadas = () => {
 
       const nuevosDias = diasSeleccionados;
 
-      console.log("➡️ antes de cancelar");
-      if (alarmaSeleccionada.notificationIds) {
-        await cancelarNotificacionesPorDias(alarmaSeleccionada.notificationIds);
+      if (notificacionSeleccionada.notificationIds) {
+        await cancelarNotificacionesPorDias(
+          notificacionSeleccionada.notificationIds,
+        );
       }
-      console.log("➡️ despues de cancelar");
 
       const notificationIds = await programarNotificacionPorDias({
-        ...alarmaSeleccionada,
+        ...notificacionSeleccionada,
         hora: horaFinal,
         minutos: minutosFinal,
         dias: nuevosDias,
         mensaje: mensajeFinal,
       });
-      console.log("➡️ despues de programar");
-      console.log("✅ ids generados", notificationIds);
 
-      const alarmaActualizada = {
-        ...alarmaSeleccionada,
+      const notificacionActualizada = {
+        ...notificacionSeleccionada,
         hora: horaFinal,
         minutos: minutosFinal,
         dias: nuevosDias,
@@ -155,15 +137,20 @@ const AlarmasProgramadas = () => {
         notificationIds,
       };
 
-      setAlarmasProgramadas((prev) =>
+      setNotificacionsProgramadas((prev) =>
         prev.map((item) =>
-          item.id === alarmaSeleccionada.id ? alarmaActualizada : item,
+          item.id === notificacionSeleccionada.id
+            ? notificacionActualizada
+            : item,
         ),
       );
 
       btnCerrarModalUnaVez();
 
-      alert(`Alarma actualizada a ${horaFinal}:${minutosFinal}`);
+      ToastAndroid.show(
+        `Notificación actualizada a ${horaFinal}:${minutosFinal}`,
+        ToastAndroid.SHORT,
+      );
     } catch (error) {
       console.log("Error:", error);
     }
@@ -182,7 +169,7 @@ const AlarmasProgramadas = () => {
       </Text>
       <View style={styles.listaNotificacionesProgramadasContainer}>
         <FlatList
-          data={alarmasProgramadasDias}
+          data={notificacionesProgramadasDias}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.listaNotificacionesDeUnaVezItem}>
@@ -236,7 +223,7 @@ const AlarmasProgramadas = () => {
                     if (item.notificationIds) {
                       await cancelarNotificacionesPorDias(item.notificationIds);
                     }
-                    borrarItemAlarma(item);
+                    borrarItemNotificacion(item);
                   }}
                 >
                   <Text style={styles.notificacionesProgramadasBorrarText}>
@@ -266,12 +253,12 @@ const AlarmasProgramadas = () => {
               Modificar Notificacion:
             </Text>
 
-            {alarmaSeleccionada && (
+            {notificacionSeleccionada && (
               <View style={styles.inputModalContainer}>
                 <TextInput
                   value={
                     nuevaHora === null
-                      ? alarmaSeleccionada.hora // al abrir el modal, mostrar hora actual
+                      ? notificacionSeleccionada.hora // al abrir el modal, mostrar hora actual
                       : nuevaHora // si el usuario escribe, usar eso
                   }
                   onChangeText={(text) => {
@@ -318,7 +305,7 @@ const AlarmasProgramadas = () => {
                   ref={minutosRef}
                   value={
                     nuevaMinutos === null
-                      ? alarmaSeleccionada.minutos
+                      ? notificacionSeleccionada.minutos
                       : nuevaMinutos
                   }
                   onChangeText={(text) => {
@@ -384,13 +371,15 @@ const AlarmasProgramadas = () => {
 
             <Text style={styles.mensajeLabel}>Mensaje</Text>
 
-            {alarmaSeleccionada && (
+            {notificacionSeleccionada && (
               <View style={styles.textinputModalContainer}>
                 <TextInput
+                  multiline
+                  maxLength={140}
                   style={styles.textinputModal}
                   value={
                     nuevaMensaje === null
-                      ? alarmaSeleccionada.mensaje
+                      ? notificacionSeleccionada.mensaje
                       : nuevaMensaje
                   }
                   onChangeText={setNuevaMensaje}
@@ -418,7 +407,7 @@ const AlarmasProgramadas = () => {
   );
 };
 
-export default AlarmasProgramadas;
+export default NotificacionsProgramadas;
 
 const styles = StyleSheet.create({
   notificacionesProgramadasContainer: {
@@ -566,7 +555,7 @@ const styles = StyleSheet.create({
   },
   textinputModal: {
     width: "100%",
-    minHeight: 80,
+    minHeight: 120,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1.5,
