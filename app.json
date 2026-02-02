@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Notis",
-    "slug": "notis",
+    "slug": "despertApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -39,6 +39,7 @@
       "eas": {
         "projectId": "b6cdb221-e68e-4f36-b1d8-75323ea4eb0c"
       }
-    }
+    },
+    "owner": "ivanbraun"
   }
 }
